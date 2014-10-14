@@ -3,7 +3,6 @@
 # Make script halt if encountering an error rather than of ingoring them
 set -e
 
-# Use a POSIX-friendly way to detect whether a command is installed
-function is_available() {
+is_available() {
   command -v "${1}" > /dev/null 2>&1
 }
