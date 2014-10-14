@@ -16,12 +16,12 @@ if ! is_available "avconv"; then
   exit 1
 fi
 
-if [[ -z "${INPUT}" ]]; then
+if [ -z "${INPUT}" ]; then
   echo "No file specified. Aborting."
   exit 1
 fi
 
-if [[ ! -f "${INPUT}" ]]; then
+if [ ! -f "${INPUT}" ]; then
   echo "${INPUT} isn't a file. Aborting."
   exit 1
 fi
@@ -37,7 +37,7 @@ trap 'rm -rf "${TEMP_DIR}"' EXIT
 GFY="${TEMP_DIR}/temp.webm"
 
 # If file is .webm, then simply extract the encoded video losslessly
-if [ "${MIMETYPE}" == "video/webm" ]; then
+if [ "${MIMETYPE}" = "video/webm" ]; then
   ffmpeg -i "${INPUT}" -loglevel panic -vcodec copy -an "${GFY}"
 else
   echo "Not a supported filetype. Aborting."
