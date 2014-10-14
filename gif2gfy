@@ -28,3 +28,7 @@ fi
 
 MIMETYPE="$(file --mime-type ${INPUT})"
 MIMETYPE="${MIMETYPE#* }"
+
+# Use temporary directory with clean-up handler for safe creation of temp files
+TEMP_DIR="$(mktemp -d)"
+trap 'rm -rf "${TEMP_DIR}"' EXIT
