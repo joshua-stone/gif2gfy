@@ -12,3 +12,9 @@ if ! is_available "ffmpeg"; then
   echo "FFmpeg needs to be installed to continue. Aborting."
   exit 1
 fi
+
+if [[ -z "${INPUT}" ]]; then
+  echo "No file specified. Aborting."
+  exit 1
+fi
+
