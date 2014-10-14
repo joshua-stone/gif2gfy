@@ -24,3 +24,6 @@ if [[ ! -f "${INPUT}" ]]; then
   echo "${INPUT} isn't a file. Aborting."
   exit 1
 fi
+
+MIMETYPE="$(file --mime-type ${INPUT})"
+MIMETYPE="${MIMETYPE#* }"
