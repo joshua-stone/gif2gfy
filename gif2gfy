@@ -3,6 +3,8 @@
 # Make script halt if encountering an error rather than of ingoring them
 set -e
 
+INPUT="${1}"
+
 # Use a POSIX-friendly way to detect whether a command is installed
 is_available() {
   command -v "${1}" > /dev/null 2>&1
@@ -18,3 +20,7 @@ if [[ -z "${INPUT}" ]]; then
   exit 1
 fi
 
+if [[ ! -f "${INPUT}" ]]; then
+  echo "${INPUT} isn't a file. Aborting."
+  exit 1
+fi
