@@ -1,6 +1,7 @@
 #!/bin/sh
 
-# Make script halt if encountering an error rather than of ingoring them
+# Make script halt if encountering an error, as opposed to the standard shell
+# behavior of ingoring them
 set -e
 
 INPUT="${1}"
