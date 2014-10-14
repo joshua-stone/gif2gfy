@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # Make script halt if encountering an error rather than of ingoring them
 set -e
