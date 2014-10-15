@@ -48,3 +48,30 @@ else
   echo "Not a supported filetype. Aborting."
   exit 1
 fi
+
+TITLE="${GFY}"
+WIDTH=""
+HEIGHT=""
+DATA="$(base64 -w 0 "${GFY}")"
+
+cat << HTML > output.webm.html
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>${TITLE} (${WIDTH}x${HEIGHT}px)</title>
+    <style type="text/css">
+      body {
+        margin: 0px;
+        text-align: center;
+        background-color: black;
+      }
+     </style>
+  <head>
+  <body>
+    <video width="${WIDTH}" height="${HEIGHT}" autoplay="autoplay" loop="">
+      <source type="${MIMETYPE}" src="${MIMETYPE};base64,${DATA}">
+    </video>
+  </body>
+</html>"
+HTML
