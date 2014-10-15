@@ -50,8 +50,8 @@ else
 fi
 
 TITLE="${GFY}"
-WIDTH=""
-HEIGHT=""
+WIDTH="773"
+HEIGHT="1000"
 DATA="$(base64 -w 0 "${GFY}")"
 
 cat << HTML > output.webm.html
@@ -70,8 +70,8 @@ cat << HTML > output.webm.html
   <head>
   <body>
     <video width="${WIDTH}" height="${HEIGHT}" autoplay="autoplay" loop="">
-      <source type="${MIMETYPE}" src="${MIMETYPE};base64,${DATA}">
+      <source type="${MIMETYPE}" src="data:${MIMETYPE};base64,${DATA}">
     </video>
   </body>
-</html>"
+</html>
 HTML
