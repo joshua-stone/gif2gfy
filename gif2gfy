@@ -39,9 +39,12 @@ trap 'rm -rf "${GFY}"' EXIT
 # If file is .webm, then simply extract the encoded video losslessly
 if [ "${MIMETYPE}" = "video/webm" ]; then
   "${BACKEND}" -i "${INPUT}" -vcodec copy -an "${GFY}" -y
+
+elif [ "${MIMETYPE}" = "image/gif" ]; then
+  Q="3.75M"
+  PARAMETERS="-minrate ${Q} -maxrate ${Q} -b:v ${Q}"
+  ${BACKEND} -i "${INPUT}" ${PARAMETERS} "${GFY}" -y
 else
   echo "Not a supported filetype. Aborting."
   exit 1
 fi
-
-cp ${GFY} .
