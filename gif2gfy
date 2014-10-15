@@ -33,7 +33,7 @@ MIMETYPE="$(file --mime-type ${INPUT})"
 MIMETYPE="${MIMETYPE#* }"
 
 # Temporary location for FFmpeg output that'll be deleted once the script ends
-GFY="$(mktemp -u --suffix=.webm)" || echo 1
+GFY="$(mktemp --dry-run --suffix=.webm)" || echo 1
 trap 'rm -rf "${GFY}"' EXIT
 
 # If file is .webm, then simply extract the encoded video losslessly
