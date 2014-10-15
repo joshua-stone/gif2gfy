@@ -11,9 +11,12 @@ is_available() {
   command -v "${1}" > /dev/null 2>&1
 }
 
-if ! is_available "avconv"; then
-  echo "FFmpeg needs to be installed to continue. Aborting."
-  exit 1
+if is_available "ffmpeg"; then
+  BACKEND="ffmpeg"
+else
+  BACKEND="ffmpeg-2.4.2-64bit-static/ffmpeg"
+  #echo "FFmpeg needs to be installed to continue. Aborting."
+  #exit 1
 fi
 
 if [ -z "${INPUT}" ]; then
@@ -30,13 +33,15 @@ MIMETYPE="$(file --mime-type ${INPUT})"
 MIMETYPE="${MIMETYPE#* }"
 
 # Temporary location for FFmpeg output that'll be deleted once the script ends
-GFY="$(tempfile)" || echo 1
+GFY="$(tempfile -s .webm)" || echo 1
 trap 'rm -rf "${GFY}"' EXIT
 
 # If file is .webm, then simply extract the encoded video losslessly
 if [ "${MIMETYPE}" = "video/webm" ]; then
-  ffmpeg -i "${INPUT}" -loglevel panic -vcodec copy -an "${GFY}"
+  "${BACKEND}" -i "${INPUT}" -vcodec copy -an "${GFY}" -y
 else
   echo "Not a supported filetype. Aborting."
   exit 1
 fi
+
+cp ${GFY} .
