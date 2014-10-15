@@ -33,16 +33,16 @@ MIMETYPE="$(file --mime-type ${INPUT})"
 MIMETYPE="${MIMETYPE#* }"
 
 # Temporary location for FFmpeg output that'll be deleted once the script ends
-GFY="$(mktemp --dry-run --suffix=.webm)" || echo 1
+GFY="$(mktemp --dry-run)" || echo 1
 trap 'rm -rf "${GFY}"' EXIT
 
 # If file is .webm, then simply extract the encoded video losslessly
 if [ "${MIMETYPE}" = "video/webm" ]; then
-  "${BACKEND}" -i "${INPUT}" -vcodec copy -an "${GFY}"
+  "${BACKEND}" -i "${INPUT}" -vcodec copy -an -f webm "${GFY}"
 
 elif [ "${MIMETYPE}" = "image/gif" ]; then
   Q="3.75M"
-  PARAMETERS="-minrate ${Q} -maxrate ${Q} -b:v ${Q}"
+  PARAMETERS="-f webm -minrate ${Q} -maxrate ${Q} -b:v ${Q}"
   ${BACKEND} -i "${INPUT}" ${PARAMETERS} "${GFY}"
 else
   echo "Not a supported filetype. Aborting."
