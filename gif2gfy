@@ -29,12 +29,9 @@ fi
 MIMETYPE="$(file --mime-type ${INPUT})"
 MIMETYPE="${MIMETYPE#* }"
 
-# Use temporary directory with clean-up handler for safe creation of temp files
-TEMP_DIR="$(mktemp -d)" || echo 1
-trap 'rm -rf "${TEMP_DIR}"' EXIT
-
-# Path for FFmpeg output, which will then be further processed
-GFY="${TEMP_DIR}/temp.webm"
+# Temporary location for FFmpeg output that'll be deleted once the script ends
+GFY="$(tempfile)" || echo 1
+trap 'rm -rf "${GFY}"' EXIT
 
 # If file is .webm, then simply extract the encoded video losslessly
 if [ "${MIMETYPE}" = "video/webm" ]; then
