@@ -11,6 +11,12 @@ is_available() {
   command -v "${1}" > /dev/null 2>&1
 }
 
+get_mimetype() {
+  FILE="${1}"
+
+  file -b --mime-type "${FILE}"
+}
+
 if is_available "ffmpeg"; then
   BACKEND="ffmpeg"
 else
@@ -29,18 +35,18 @@ if [ ! -f "${INPUT}" ]; then
   exit 1
 fi
 
-MIMETYPE="$(file -b --mime-type ${INPUT})"
+IN_MIMETYPE="$(get_mimetype "${INPUT}")"
 
 # Temporary location for FFmpeg output that'll be deleted once the script ends
 GFY="$(mktemp --dry-run)" || echo 1
 trap 'rm -rf "${GFY}"' EXIT
 
 # If file is .webm, then simply extract the encoded video losslessly
-if [ "${MIMETYPE}" = "video/webm" ]; then
+if [ "${IN_MIMETYPE}" = "video/webm" ]; then
   PARAMETERS="-f webm -vcodec copy -an"
   "${BACKEND}" -i "${INPUT}" ${PARAMETERS} "${GFY}"
 
-elif [ "${MIMETYPE}" = "image/gif" ]; then
+elif [ "${IN_MIMETYPE}" = "image/gif" ]; then
   Q="3.75M"
   PARAMETERS="-f webm -minrate ${Q} -maxrate ${Q} -b:v ${Q}"
   ${BACKEND} -i "${INPUT}" ${PARAMETERS} "${GFY}"
@@ -54,6 +60,7 @@ PARAMETERS="-loglevel quiet -show_entries stream=width,height -print_format csv"
 VIDEO_DATA="$("${FFPROBE}" "${GFY}" ${PARAMETERS})"
 
 TITLE="${GFY}"
+OUT_MIMETYPE="$(get_mimetype "${GFY}")"
 WIDTH="$(echo "${VIDEO_DATA}" | cut -d "," -f2)"
 HEIGHT="$(echo "${VIDEO_DATA}" | cut -d "," -f3)"
 DATA="$(base64 -w 0 "${GFY}")"
@@ -74,7 +81,7 @@ cat << HTML > output.webm.html
   <head>
   <body>
     <video width="${WIDTH}" height="${HEIGHT}" autoplay="autoplay" loop="">
-      <source type="${MIMETYPE}" src="data:${MIMETYPE};base64,${DATA}">
+      <source type="${OUT_MIMETYPE}" src="data:${OUT_MIMETYPE};base64,${DATA}">
     </video>
   </body>
 </html>
