@@ -4,7 +4,7 @@
 # behavior of ingoring them
 set -e
 
-INPUT="${1}"
+IN_FILE="${1}"
 
 # Use a POSIX-friendly way of detecting whether a command is installed
 is_available() {
@@ -25,17 +25,17 @@ else
   #exit 1
 fi
 
-if [ -z "${INPUT}" ]; then
+if [ -z "${IN_FILE}" ]; then
   echo "No file specified. Aborting."
   exit 1
 fi
 
-if [ ! -f "${INPUT}" ]; then
+if [ ! -f "${IN_FILE}" ]; then
   echo "${INPUT} isn't a file. Aborting."
   exit 1
 fi
 
-IN_MIMETYPE="$(get_mimetype "${INPUT}")"
+IN_MIMETYPE="$(get_mimetype "${IN_FILE}")"
 
 # Temporary location for FFmpeg output that'll be deleted once the script ends
 GFY="$(mktemp --dry-run)" || echo 1
@@ -44,12 +44,12 @@ trap 'rm -f "${GFY}"' EXIT
 # If file is .webm, then simply extract the encoded video losslessly
 if [ "${IN_MIMETYPE}" = "video/webm" ]; then
   PARAMETERS="-f webm -vcodec copy -an"
-  "${BACKEND}" -i "${INPUT}" ${PARAMETERS} "${GFY}"
+  "${BACKEND}" -i "${IN_FILE}" ${PARAMETERS} "${GFY}"
 
 elif [ "${IN_MIMETYPE}" = "image/gif" ]; then
   Q="3.75M"
   PARAMETERS="-f webm -minrate ${Q} -maxrate ${Q} -b:v ${Q}"
-  ${BACKEND} -i "${INPUT}" ${PARAMETERS} "${GFY}"
+  ${BACKEND} -i "${IN_FILE}" ${PARAMETERS} "${GFY}"
 else
   echo "Not a supported filetype. Aborting."
   exit 1
