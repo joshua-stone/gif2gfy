@@ -4,6 +4,10 @@
 # behavior of ignoring them
 set -e
 
+Q="3.5"
+TITLE="o.html"
+OUT_FILE="o.html"
+
 # Use a POSIX-friendly way of detecting whether a command is installed
 is_available() {
   command -v "${1}" > /dev/null 2>&1
@@ -15,13 +19,19 @@ get_mimetype() {
   file -b --mime-type "${FILE}"
 }
 
-while getopts ":i:o:" opt; do
+while getopts ":i:o:q:t:" opt; do
   case $opt in
     i)
       IN_FILE="${OPTARG}"
       ;;
     o)
       OUT_FILE="${OPTARG}"
+      ;;
+    q)
+      Q=${OPTARG}
+      ;;
+    t)
+      TITLE="${OPTARG}"
       ;;
     \?)
       echo "Invalid option: -$OPTARG. Aborting" >&2
@@ -64,8 +74,7 @@ if [ "${IN_MIMETYPE}" = "video/webm" ]; then
   "${BACKEND}" -i "${IN_FILE}" ${PARAMETERS} "${GFY}"
 
 elif [ "${IN_MIMETYPE}" = "image/gif" ]; then
-  Q="3.75M"
-  PARAMETERS="-f webm -minrate ${Q} -maxrate ${Q} -b:v ${Q}"
+  PARAMETERS="-f webm -minrate ${Q}M -maxrate ${Q}M -b:v ${Q}M"
   ${BACKEND} -i "${IN_FILE}" ${PARAMETERS} "${GFY}"
 else
   echo "Not a supported filetype. Aborting."
@@ -76,10 +85,6 @@ FFPROBE="ffmpeg-2.4.2-64bit-static/ffprobe"
 PARAMETERS="-loglevel quiet -show_entries stream=width,height -print_format csv"
 VIDEO_DATA="$("${FFPROBE}" "${GFY}" ${PARAMETERS})"
 
-if [ -z "${OUT_FILE}" ]; then
-  OUT_FILE="output.webm.html"
-fi
-TITLE="${OUT_FILE}"
 OUT_MIMETYPE="$(get_mimetype "${GFY}")"
 WIDTH="$(echo "${VIDEO_DATA}" | cut -d "," -f2)"
 HEIGHT="$(echo "${VIDEO_DATA}"|  cut -d "," -f3)"
