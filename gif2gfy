@@ -6,7 +6,7 @@ set -e
 
 INPUT="${1}"
 
-# Use a POSIX-friendly way to detect whether a command is installed
+# Use a POSIX-friendly way of detecting whether a command is installed
 is_available() {
   command -v "${1}" > /dev/null 2>&1
 }
