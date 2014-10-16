@@ -78,7 +78,7 @@ cat << HTML > output.webm.html
         background-color: black;
       }
      </style>
-  <head>
+  </head>
   <body>
     <video width="${WIDTH}" height="${HEIGHT}" autoplay="autoplay" loop="">
       <source type="${OUT_MIMETYPE}" src="data:${OUT_MIMETYPE};base64,${DATA}">
