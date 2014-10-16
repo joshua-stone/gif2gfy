@@ -49,9 +49,13 @@ else
   exit 1
 fi
 
+FFPROBE="ffmpeg-2.4.2-64bit-static/ffprobe"
+PARAMETERS="-loglevel quiet -show_entries stream=width,height -print_format csv"
+VIDEO_DATA="$("${FFPROBE}" "${GFY}" ${PARAMETERS})"
+
 TITLE="${GFY}"
-WIDTH="773"
-HEIGHT="1000"
+WIDTH="$(echo "${VIDEO_DATA}" | cut -d "," -f2)"
+HEIGHT="$(echo "${VIDEO_DATA}" | cut -d "," -f3)"
 DATA="$(base64 -w 0 "${GFY}")"
 
 cat << HTML > output.webm.html
