@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # Make script halt if encountering an error, as opposed to the standard shell
-# behavior of ingoring them
+# behavior of ignoring them
 set -e
 
 # Use a POSIX-friendly way of detecting whether a command is installed
