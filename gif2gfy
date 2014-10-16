@@ -73,17 +73,27 @@ cat << HTML > "${OUT_FILE}"
     <meta charset="utf-8">
     <title>${TITLE} (${WIDTH}x${HEIGHT}px)</title>
     <style type="text/css">
+      html, body {
+        width: 100%;
+        height: 100%;
+      }
+      html {
+        display: table;
+      }
       body {
-        margin: 0px;
+        display: table-cell;
+        vertical-align: middle;
         text-align: center;
         background-color: black;
       }
      </style>
   </head>
   <body>
+   <div id="body">
     <video width="${WIDTH}" height="${HEIGHT}" autoplay="autoplay" loop="">
       <source type="${OUT_MIMETYPE}" src="data:${OUT_MIMETYPE};base64,${DATA}">
     </video>
+  </div>
   </body>
 </html>
 HTML
