@@ -16,7 +16,7 @@ is_null() {
 get_mimetype() {
   FILE="${1}"
 
-  file -b --mime-type "${FILE}"
+  file --brief --mime-type "${FILE}"
 }
 
 while getopts ":i:o:q:t:h" opt; do
@@ -113,7 +113,7 @@ VIDEO_DATA="$("${FFPROBE}" "${GFY}" ${PARAMETERS})"
 OUT_MIMETYPE="$(get_mimetype "${GFY}")"
 WIDTH="$(echo "${VIDEO_DATA}" | cut -d "," -f2)"
 HEIGHT="$(echo "${VIDEO_DATA}"|  cut -d "," -f3)"
-DATA="$(base64 -w 0 "${GFY}")"
+DATA="$(base64 --wrap 0 "${GFY}")"
 
 cat << HTML > "${OUT_FILE}"
 <!DOCTYPE html>
