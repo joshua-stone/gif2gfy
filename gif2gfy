@@ -71,10 +71,20 @@ fi
 
 if is_available "ffmpeg"; then
   BACKEND="ffmpeg"
-else
+elif [ -x "ffmpeg-2.4.2-64bit-static/ffmpeg" ]; then
   BACKEND="ffmpeg-2.4.2-64bit-static/ffmpeg"
-  #echo "FFmpeg needs to be installed to continue. Aborting."
-  #exit 1
+else
+  echo "FFmpeg needs to be installed to continue. Aborting."
+  exit 1
+fi
+
+if is_available "ffprobe"; then
+  PROBE="ffprobe"
+elif [ -x "ffmpeg-2.4.2-64bit-static/ffprobe" ]; then
+  PROBE="ffmpeg-2.4.2-64bit-static/ffprobe"
+else
+  echo "FFprobe needs to be instaled to continue. Aborting."
+  exit 1
 fi
 
 if is_null "${IN_FILE}"; then
@@ -106,9 +116,8 @@ else
   exit 1
 fi
 
-FFPROBE="ffmpeg-2.4.2-64bit-static/ffprobe"
 PARAMETERS="-loglevel quiet -show_entries stream=width,height -print_format csv"
-VIDEO_DATA="$("${FFPROBE}" "${GFY}" ${PARAMETERS})"
+VIDEO_DATA="$("${PROBE}" "${GFY}" ${PARAMETERS})"
 
 OUT_MIMETYPE="$(get_mimetype "${GFY}")"
 WIDTH="$(echo "${VIDEO_DATA}" | cut -d "," -f2)"
