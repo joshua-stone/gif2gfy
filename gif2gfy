@@ -4,13 +4,13 @@
 # behavior of ignoring them
 set -e
 
-Q="3.5"
-TITLE="o.html"
-OUT_FILE="o.html"
-
 # Use a POSIX-friendly way of detecting whether a command is installed
 is_available() {
   command -v "${1}" > /dev/null 2>&1
+}
+
+is_null() {
+  [ -z "${1}" ]
 }
 
 get_mimetype() {
@@ -43,6 +43,19 @@ while getopts ":i:o:q:t:" opt; do
       ;;
   esac
 done
+
+# Set default values if they aren't defined in GETOPTS
+if is_null "${Q}"; then
+  Q="3.5"
+fi
+
+if is_null "${OUT_FILE}"; then
+  OUT_FILE="o.html"
+fi
+
+if is_null "${TITLE}"; then
+  TITLE="${OUT_FILE}"
+fi
 
 if is_available "ffmpeg"; then
   BACKEND="ffmpeg"
