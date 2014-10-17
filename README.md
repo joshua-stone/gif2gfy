@@ -15,15 +15,16 @@ An FFmpeg frontend for converting gifs into standalone gfy files.
 
 ## Goals of this project
 
-Currently the one domain where the gif format is better than Gfycat is being
-able to be saved to the desktop and shared as a single file, whereas Gfycat
-is limited to the web.
+The one shortcoming Gfycat currently has with its gfy format is is not being
+able to be saved to the desktop and shared as a single file, an advantage gif
+has enjoyed since its inception in 1987.
 
 Gif2gfy overcomes Gfycat's lack of desktop support by distilling the essence of
 the gfy format, i.e., a looping video, and putting it into a self-contained
 HTML5 container for easy saving.
 
 The ultimate goal of this project is to become redundant with the advent of
-proper replacements for the gif format so that it can finally be retired. In
-the meantime, this project serves as a stopgap solution so that users can
-benefit from much smaller and smoother animations.
+proper replacements for the gif format. In the meantime, this project serves as
+a stopgap solution so that users can benefit from much smaller and smoother
+animations.
+
