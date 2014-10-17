@@ -77,7 +77,7 @@ else
   #exit 1
 fi
 
-if [ -z "${IN_FILE}" ]; then
+if is_null "${IN_FILE}"; then
   echo "No file specified. Aborting."
   exit 1
 fi
