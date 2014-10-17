@@ -19,8 +19,20 @@ get_mimetype() {
   file -b --mime-type "${FILE}"
 }
 
-while getopts ":i:o:q:t:" opt; do
+while getopts ":i:o:q:t:h" opt; do
   case $opt in
+    h)
+      echo "An FFmpeg frontend for converting gifs into standalone gfy files."
+      echo
+      echo "Usage: gif2gfy -i infile -o outfile"
+      echo
+      echo "Flags available:"
+      echo "  -h     Print basic documentation"
+      echo "  -o     Set filename of output; default is o.html"
+      echo "  -q     Set bitrate in MBs for gif-to-webm conversion; default is 3.5"
+      echo "  -t     Set title in HTML page; default is whatever -o is set to"
+      exit 1
+      ;;
     i)
       IN_FILE="${OPTARG}"
       ;;
@@ -83,11 +95,11 @@ trap 'rm -f "${GFY}"' EXIT
 
 # If file is .webm, then simply extract the encoded video losslessly
 if [ "${IN_MIMETYPE}" = "video/webm" ]; then
-  PARAMETERS="-f webm -vcodec copy -an"
+  PARAMETERS="-f webm -loglevel quiet -vcodec copy -an"
   "${BACKEND}" -i "${IN_FILE}" ${PARAMETERS} "${GFY}"
 
 elif [ "${IN_MIMETYPE}" = "image/gif" ]; then
-  PARAMETERS="-f webm -minrate ${Q}M -maxrate ${Q}M -b:v ${Q}M"
+  PARAMETERS="-f webm -loglevel quiet -minrate ${Q}M -maxrate ${Q}M -b:v ${Q}M"
   "${BACKEND}" -i "${IN_FILE}" ${PARAMETERS} "${GFY}"
 else
   echo "Not a supported filetype. Aborting."
