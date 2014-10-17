@@ -15,9 +15,9 @@ An FFmpeg frontend for converting gifs into standalone gfy files.
 
 ## Goals of this project
 
-The one shortcoming Gfycat currently has with its gfy format is is not being
-able to be saved to the desktop and shared as a single file, an advantage gif
-has enjoyed since its inception in 1987.
+One particular shortcoming of Gfycat's gfy format is not being able to be saved
+to the desktop and shared as a single file, which is an advantage gif has
+enjoyed since its inception in 1987.
 
 Gif2gfy overcomes Gfycat's lack of desktop support by distilling the essence of
 the gfy format, i.e., a looping video, and putting it into a self-contained
