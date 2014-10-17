@@ -28,7 +28,7 @@ while getopts ":i:o:q:t:" opt; do
       OUT_FILE="${OPTARG}"
       ;;
     q)
-      Q=${OPTARG}
+      Q="${OPTARG}"
       ;;
     t)
       TITLE="${OPTARG}"
@@ -88,7 +88,7 @@ if [ "${IN_MIMETYPE}" = "video/webm" ]; then
 
 elif [ "${IN_MIMETYPE}" = "image/gif" ]; then
   PARAMETERS="-f webm -minrate ${Q}M -maxrate ${Q}M -b:v ${Q}M"
-  ${BACKEND} -i "${IN_FILE}" ${PARAMETERS} "${GFY}"
+  "${BACKEND}" -i "${IN_FILE}" ${PARAMETERS} "${GFY}"
 else
   echo "Not a supported filetype. Aborting."
   exit 1
