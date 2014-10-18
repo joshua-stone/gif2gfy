@@ -26,9 +26,11 @@ while getopts ":c:i:o:q:t:h" opt; do
       echo
       echo "Usage: gif2gfy -i infile -o outfile"
       echo
+      echo "Getting help:"
+      echo "  -h     Print basic options available"
+      echo
       echo "Flags available:"
       echo "  -c     Choose background color of gfy; default is black"
-      echo "  -h     Print basic documentation"
       echo "  -o     Set filename of output; default is o.html"
       echo "  -q     Set bitrate in MBs for gif-to-webm conversion; default is 3.5"
       echo "  -t     Set title in HTML page; default is whatever -o is set to"
