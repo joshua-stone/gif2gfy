@@ -141,7 +141,7 @@ cat << HTML > "${OUT_FILE}"
     <meta charset="utf-8">
     <title>${TITLE} (${WIDTH}x${HEIGHT}px)</title>
     <style type="text/css">
-       * {
+      * {
         margin: 0;
         padding: 0;
       }
