@@ -165,11 +165,9 @@ cat << HTML > "${OUT_FILE}"
      </style>
   </head>
   <body>
-   <div id="body">
     <video width="${WIDTH}" height="${HEIGHT}" autoplay="autoplay" loop="">
       <source type="${OUT_MIMETYPE}" src="data:${OUT_MIMETYPE};base64,${DATA}">
     </video>
-  </div>
   </body>
 </html>
 HTML
