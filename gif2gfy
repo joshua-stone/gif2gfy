@@ -108,14 +108,15 @@ if [ ! -f "${IN_FILE}" ]; then
 fi
 
 IN_MIMETYPE="$(get_mimetype "${IN_FILE}")"
+IN_EXTENSION="${IN_MIMETYPE#*/}"
 
 # Temporary location for FFmpeg output that'll be deleted once the script ends
 GFY="$(mktemp --dry-run)" || echo 1
 trap 'rm -f "${GFY}"' EXIT
 
 # If file is .webm, then simply extract the encoded video losslessly
-if [ "${IN_MIMETYPE}" = "video/webm" ]; then
-  PARAMETERS="-f webm -loglevel quiet -vcodec copy -an"
+if [ "${IN_MIMETYPE}" = "video/webm" ] || [ "${IN_MIMETYPE}" = "video/mp4" ]; then
+  PARAMETERS="-f ${IN_EXTENSION} -loglevel quiet -vcodec copy -an"
   "${BACKEND}" -i "${IN_FILE}" ${PARAMETERS} "${GFY}"
 
 elif [ "${IN_MIMETYPE}" = "image/gif" ]; then
