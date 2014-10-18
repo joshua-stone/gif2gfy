@@ -19,7 +19,7 @@ get_mimetype() {
   file --brief --mime-type "${FILE}"
 }
 
-while getopts ":i:o:q:t:h" opt; do
+while getopts ":c:i:o:q:t:h" opt; do
   case $opt in
     h)
       echo "An FFmpeg frontend for converting gifs into standalone gfy files."
@@ -27,6 +27,7 @@ while getopts ":i:o:q:t:h" opt; do
       echo "Usage: gif2gfy -i infile -o outfile"
       echo
       echo "Flags available:"
+      echo "  -c     Choose background color of gfy; default is black"
       echo "  -h     Print basic documentation"
       echo "  -o     Set filename of output; default is o.html"
       echo "  -q     Set bitrate in MBs for gif-to-webm conversion; default is 3.5"
@@ -35,6 +36,9 @@ while getopts ":i:o:q:t:h" opt; do
       ;;
     i)
       IN_FILE="${OPTARG}"
+      ;;
+    c)
+      COLOR="${OPTARG}"
       ;;
     o)
       OUT_FILE="${OPTARG}"
@@ -63,6 +67,10 @@ fi
 
 if is_null "${OUT_FILE}"; then
   OUT_FILE="o.html"
+fi
+
+if is_null "${COLOR}"; then
+  COLOR="black"
 fi
 
 if is_null "${TITLE}"; then
@@ -142,7 +150,7 @@ cat << HTML > "${OUT_FILE}"
         display: table-cell;
         vertical-align: middle;
         text-align: center;
-        background-color: black;
+        background-color: ${COLOR};
       }
      </style>
   </head>
@@ -155,3 +163,5 @@ cat << HTML > "${OUT_FILE}"
   </body>
 </html>
 HTML
+
+realpath "${OUT_FILE}"
