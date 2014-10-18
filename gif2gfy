@@ -19,7 +19,7 @@ get_mimetype() {
   file --brief --mime-type "${FILE}"
 }
 
-while getopts ":c:i:o:q:t:h" opt; do
+while getopts ":dc:i:o:q:t:h" opt; do
   case $opt in
     h)
       echo "An FFmpeg frontend for converting gifs into standalone gfy files."
@@ -34,6 +34,7 @@ while getopts ":c:i:o:q:t:h" opt; do
       echo "  -o     Set filename of output; default is o.html"
       echo "  -q     Set bitrate in MBs for gif-to-webm conversion; default is 3.5"
       echo "  -t     Set title in HTML page; default is whatever -o is set to"
+      echo "  -d     Disable limiting the video to screen height/width"
       exit 1
       ;;
     i)
@@ -50,6 +51,9 @@ while getopts ":c:i:o:q:t:h" opt; do
       ;;
     t)
       TITLE="${OPTARG}"
+      ;;
+    d)
+      DNRESIZE="/**/"
       ;;
     \?)
       echo "Invalid option: -$OPTARG. Aborting" >&2
@@ -77,6 +81,13 @@ fi
 
 if is_null "${TITLE}"; then
   TITLE="${OUT_FILE}"
+fi
+
+if is_null "${DNRESIZE}"; then
+  DNRESIZE="video {
+      max-height: 100%;
+      max-width: 100%;
+    }"
 fi
 
 if is_available "ffmpeg"; then
@@ -161,6 +172,7 @@ cat << HTML > "${OUT_FILE}"
       display: block;
       margin: 0 auto;
     }
+    ${DNRESIZE}
   </style>
   <video width="${WIDTH}" height="${HEIGHT}" autoplay="autoplay" loop="">
     <source type="${OUT_MIMETYPE}" src="data:${OUT_MIMETYPE};base64,${DATA}">
