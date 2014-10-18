@@ -54,6 +54,7 @@ while getopts ":dc:i:o:q:t:h" opt; do
       ;;
     d)
       DNRESIZE="/**/"
+      ;;
     \?)
       echo "Invalid option: -$OPTARG. Aborting" >&2
       exit 1
