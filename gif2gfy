@@ -141,6 +141,10 @@ cat << HTML > "${OUT_FILE}"
     <meta charset="utf-8">
     <title>${TITLE} (${WIDTH}x${HEIGHT}px)</title>
     <style type="text/css">
+      * {
+        margin: 0;
+        padding: 0;
+      }
       html, body {
         width: 100%;
         height: 100%;
@@ -153,6 +157,10 @@ cat << HTML > "${OUT_FILE}"
         vertical-align: middle;
         text-align: center;
         background-color: ${COLOR};
+      }
+      video, source {
+        display: block;
+        margin: 0 auto;
       }
      </style>
   </head>
