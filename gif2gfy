@@ -93,7 +93,7 @@ if is_available "ffprobe"; then
 elif [ -x "ffmpeg-2.4.2-64bit-static/ffprobe" ]; then
   PROBE="ffmpeg-2.4.2-64bit-static/ffprobe"
 else
-  echo "FFprobe needs to be instaled to continue. Aborting."
+  echo "FFprobe needs to be installed to continue. Aborting."
   exit 1
 fi
 
