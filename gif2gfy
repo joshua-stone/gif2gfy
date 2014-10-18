@@ -162,7 +162,7 @@ cat << HTML > "${OUT_FILE}"
         display: block;
         margin: 0 auto;
       }
-     </style>
+    </style>
   </head>
   <body>
     <video width="${WIDTH}" height="${HEIGHT}" autoplay="autoplay" loop="">
