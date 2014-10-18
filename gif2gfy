@@ -67,16 +67,8 @@ if is_null "${Q}"; then
   Q="3.5"
 fi
 
-if is_null "${OUT_FILE}"; then
-  OUT_FILE="o.html"
-fi
-
 if is_null "${COLOR}"; then
   COLOR="black"
-fi
-
-if is_null "${TITLE}"; then
-  TITLE="${OUT_FILE}"
 fi
 
 if is_available "ffmpeg"; then
@@ -131,9 +123,19 @@ PARAMETERS="-loglevel quiet -show_entries stream=width,height -print_format csv"
 VIDEO_DATA="$("${PROBE}" "${GFY}" ${PARAMETERS})"
 
 OUT_MIMETYPE="$(get_mimetype "${GFY}")"
+OUT_EXTENSION="${OUT_MIMETYPE#*/}"
+
 WIDTH="$(echo "${VIDEO_DATA}" | cut -d "," -f2)"
 HEIGHT="$(echo "${VIDEO_DATA}"|  cut -d "," -f3)"
 DATA="$(base64 --wrap 0 "${GFY}")"
+
+if is_null "${OUT_FILE}"; then
+  OUT_FILE="o.${OUT_EXTENSION}.html"
+fi
+
+if is_null "${TITLE}"; then
+  TITLE="${OUT_FILE}"
+fi
 
 cat << HTML > "${OUT_FILE}"
 <!DOCTYPE html>
