@@ -19,27 +19,18 @@ get_mimetype() {
   file --brief --mime-type "${FILE}"
 }
 
-<<<<<<< HEAD
 while getopts ":c:i:o:q:t:h" opt; do
-=======
-while getopts ":i:o:q:t:h" opt; do
->>>>>>> 1bc6fa1c19188f98442520b8234bc2edb6df6083
   case $opt in
     h)
       echo "An FFmpeg frontend for converting gifs into standalone gfy files."
       echo
       echo "Usage: gif2gfy -i infile -o outfile"
       echo
-<<<<<<< HEAD
       echo "Getting help:"
       echo "  -h     Print basic options available"
       echo
       echo "Flags available:"
       echo "  -c     Choose background color of gfy; default is black"
-=======
-      echo "Flags available:"
-      echo "  -h     Print basic documentation"
->>>>>>> 1bc6fa1c19188f98442520b8234bc2edb6df6083
       echo "  -o     Set filename of output; default is o.html"
       echo "  -q     Set bitrate in MBs for gif-to-webm conversion; default is 3.5"
       echo "  -t     Set title in HTML page; default is whatever -o is set to"
