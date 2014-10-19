@@ -19,7 +19,7 @@ get_mimetype() {
   file --brief --mime-type "${FILE}"
 }
 
-while getopts ":c:i:o:q:t:h" opt; do
+while getopts ":p:c:i:o:q:t:h" opt; do
   case $opt in
     h)
       echo "An FFmpeg frontend for converting gifs into standalone gfy files."
@@ -32,6 +32,7 @@ while getopts ":c:i:o:q:t:h" opt; do
       echo "Flags available:"
       echo "  -c     Choose background color of gfy; default is black"
       echo "  -o     Set filename of output; default is o.{mp4,webm}.html"
+      echo "  -p     Specify a custom directory to look for FFmpeg and FFprobe"
       echo "  -q     Set bitrate in MBs for gif-to-webm conversion; default is 3.5"
       echo "  -t     Set title in HTML page; default is whatever -o is set to"
       exit 1
@@ -44,6 +45,9 @@ while getopts ":c:i:o:q:t:h" opt; do
       ;;
     o)
       OUT_FILE="${OPTARG}"
+      ;;
+    p)
+      P="${OPTARG}"
       ;;
     q)
       Q="${OPTARG}"
@@ -71,21 +75,21 @@ if is_null "${COLOR}"; then
   COLOR="black"
 fi
 
-if is_available "ffmpeg"; then
+if [ -n "${P}" ]; then
+  FULL_PATH="$(realpath "${P}")"
+
+  if [ -x "${FULL_PATH}/ffmpeg" ] && [ -x "${FULL_PATH}/ffprobe" ]; then
+    BACKEND="${FULL_PATH}/ffmpeg"
+    PROBE="${FULL_PATH}/ffprobe"
+  else
+    echo "FFmpeg and FFprobe aren't available on ${FULL_PATH}. Aborting."
+    exit 1
+  fi
+elif is_available "ffmpeg" && is_available "ffprobe"; then
   BACKEND="ffmpeg"
-elif [ -x "ffmpeg-2.4.2-64bit-static/ffmpeg" ]; then
-  BACKEND="ffmpeg-2.4.2-64bit-static/ffmpeg"
+  PROBE="ffprobe"
 else
   echo "FFmpeg needs to be installed to continue. Aborting."
-  exit 1
-fi
-
-if is_available "ffprobe"; then
-  PROBE="ffprobe"
-elif [ -x "ffmpeg-2.4.2-64bit-static/ffprobe" ]; then
-  PROBE="ffmpeg-2.4.2-64bit-static/ffprobe"
-else
-  echo "FFprobe needs to be installed to continue. Aborting."
   exit 1
 fi
 
