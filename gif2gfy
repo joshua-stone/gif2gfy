@@ -31,7 +31,7 @@ while getopts ":c:i:o:q:t:h" opt; do
       echo
       echo "Flags available:"
       echo "  -c     Choose background color of gfy; default is black"
-      echo "  -o     Set filename of output; default is o.html"
+      echo "  -o     Set filename of output; default is o.{mp4,webm}.html"
       echo "  -q     Set bitrate in MBs for gif-to-webm conversion; default is 3.5"
       echo "  -t     Set title in HTML page; default is whatever -o is set to"
       exit 1
