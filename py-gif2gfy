@@ -1,0 +1,10 @@
+#!/usr/bin/env python
+
+from distutils.spawn import find_executable
+from sys import exit
+
+ffmpeg = find_executable("ffmpeg")
+
+if not ffmpeg:
+  print("FFmpeg needs to be installed to continue. Aborting.")
+  exit()
