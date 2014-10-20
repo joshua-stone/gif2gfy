@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 
 from sys import exit, version_info
+from mimetypes import guess_type
+
+def get_mimetype(filename):
+  return(guess_type(filename)[0])
 
 # Python3.3 adds sys.version_info, which is a more reliable method for checking
 # program availability than distutils.spawn.find_executable()
@@ -14,5 +18,3 @@ ffmpeg = which("ffmpeg")
 if not ffmpeg:
   print("FFmpeg needs to be installed to continue. Aborting.")
   exit()
-
-
