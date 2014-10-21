@@ -51,8 +51,8 @@ def main():
 
   with NamedTemporaryFile() as temp:
     if in_extension in ("webm", "mp4"):
-      parameters="-f {0} -loglevel quiet -vcodec copy -an -y".format(in_extension)
-      call("{0} -i {1} {2} {3}".format(ffmpeg, args.input, parameters, temp.name), shell=True)
+      parameters = "-i {0} -f {1} -loglevel quiet -vcodec copy -an -y".format(args.input, in_extension)
+      call("{0} {1} {2}".format(ffmpeg, parameters, temp.name), shell=True)
     else:
       print("Not a supported filetype. Aborting.")
       exit()
