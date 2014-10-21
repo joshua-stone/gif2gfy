@@ -82,7 +82,7 @@ def main():
 
   ffmpeg, ffprobe = which("ffmpeg"), which("ffprobe")
   
-  if not ffmpeg:
+  if not ffmpeg or ffprobe:
     print("FFmpeg needs to be installed to continue. Aborting.")
     exit()
   
