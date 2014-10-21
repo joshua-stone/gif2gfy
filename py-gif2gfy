@@ -80,7 +80,7 @@ def main():
   else:
     from distutils.spawn import find_executable as which
 
-  ffmpeg = which("ffmpeg")
+  ffmpeg, ffprobe = which("ffmpeg"), which("ffprobe")
   
   if not ffmpeg:
     print("FFmpeg needs to be installed to continue. Aborting.")
