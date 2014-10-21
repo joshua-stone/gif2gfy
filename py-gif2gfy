@@ -6,12 +6,17 @@ from mimetypes import guess_type
 from os.path import isfile
 from tempfile import NamedTemporaryFile
 from subprocess import call
+from base64 import b64encode
 
 def get_mimetype(filename):
   return(guess_type(filename)[0])
 
 def get_extension(filename):
   return(get_mimetype(filename).split("/")[1])
+
+def to_base64(filename):
+  with open(filename, "rb") as f:
+    return(b64encode(f.read()))
 
 def main():
 
