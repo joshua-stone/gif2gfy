@@ -3,10 +3,15 @@
 from argparse import ArgumentParser
 from sys import exit, version_info
 from mimetypes import guess_type
-
+from os.path import isfile
+from tempfile import NamedTemporaryFile
+from subprocess import call
 
 def get_mimetype(filename):
   return(guess_type(filename)[0])
+
+def get_extension(filename):
+  return(get_mimetype(filename).split("/")[1])
 
 def main():
 
@@ -14,11 +19,19 @@ def main():
   parser.add_argument("-i", "--input", help="Input file")
   parser.add_argument("-c", "--color", help="Choose background color of gfy; default is black")
   parser.add_argument("-o" "--output", help="Set filename of output; default is o.{mp4,webm}.html")
-  parser.add_argument("-p", "--path")
+  parser.add_argument("-p", "--path", help="Specify a custom directory to look for FFmpeg and FFprobe")
   parser.add_argument("-q", "--quality", help="Set bitrate in MBs for gif-to-webm conversion; default is 3.5")
   parser.add_argument("-t", "--title", help="Set title in HTML page; default is whatever -o is set to")
 
   args = parser.parse_args()
+
+  if not args.input:
+    print("No file specified. Aborting.")
+    exit()
+
+  if not isfile(args.input):
+    print("{0} isn't a file. Aborting.".format(args.input))
+    exit()
 
   # Python3.3 adds sys.version_info, which is a more reliable method for checking
   # program availability than distutils.spawn.find_executable()
@@ -28,10 +41,21 @@ def main():
     from distutils.spawn import find_executable as which
 
   ffmpeg = which("ffmpeg")
-
+  
   if not ffmpeg:
     print("FFmpeg needs to be installed to continue. Aborting.")
     exit()
+  
+  in_mimetype = get_mimetype(args.input)
+  in_extension = get_extension(args.input)
+
+  with NamedTemporaryFile() as temp:
+    if in_extension in ("webm", "mp4"):
+      parameters="-f webm -loglevel quiet -vcodec copy -an -y"
+      call("{0} -i {1} {2} {3}".format(ffmpeg, args.input, parameters, temp.name), shell=True)
+    else:
+      print("Not a supported filetype. Aborting.")
+      exit()
 
 if __name__ == "__main__":
   main()
