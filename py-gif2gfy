@@ -9,6 +9,7 @@ from subprocess import call
 from base64 import b64encode
 from string import Template
 from subprocess import Popen, PIPE
+from json import loads
 
 def get_mimetype(filename):
   return(guess_type(filename)[0])
@@ -108,11 +109,13 @@ def main():
     
     call("{0} {1} {2}".format(ffmpeg, ffmpeg_parameters, temp.name), shell=True)
 
-    ffprobe_parameters = "-loglevel quiet -show_entries stream=width,height -print_format jsoni -i"
+    ffprobe_parameters = "-loglevel quiet -show_entries stream=width,height -print_format json -i"
     out = Popen("{0} {1} {2}".format(ffprobe, ffprobe_parameters, temp.name), stdout=PIPE, shell=True)
     output, err = out.communicate()
 
-    
+    json = loads(output.decode("utf-8"))
+    dimensions = json["streams"][0]
+
 if __name__ == "__main__":
   main()
 
