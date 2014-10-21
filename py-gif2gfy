@@ -8,6 +8,7 @@ from tempfile import NamedTemporaryFile
 from subprocess import call
 from base64 import b64encode
 from string import Template
+from subprocess import Popen, PIPE
 
 def get_mimetype(filename):
   return(guess_type(filename)[0])
@@ -103,9 +104,13 @@ def main():
       print("Not a supported filetype. Aborting.")
       exit()
 
-    parameters = "-i {0} -y -loglevel quiet {1}".format(args.input, custom)
+    ffmpeg_parameters = "-i {0} -y -loglevel quiet {1}".format(args.input, custom)
     
-    call("{0} {1} {2}".format(ffmpeg, parameters, temp.name), shell=True)
+    call("{0} {1} {2}".format(ffmpeg, ffmpeg_parameters, temp.name), shell=True)
+
+    ffprobe_parameters = "-loglevel quiet -show_entries stream=width,height -print_format jsoni -i"
+    out = Popen("{0} {1} {2}".format(ffprobe, ffprobe_parameters, temp.name), stdout=PIPE, shell=True)
+    output, err = out.communicate()
 
     
 if __name__ == "__main__":
