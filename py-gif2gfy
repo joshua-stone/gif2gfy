@@ -56,11 +56,19 @@ def main():
 
   with NamedTemporaryFile() as temp:
     if in_extension in ("webm", "mp4"):
-      parameters = "-i {0} -f {1} -loglevel quiet -vcodec copy -an -y".format(args.input, in_extension)
-      call("{0} {1} {2}".format(ffmpeg, parameters, temp.name), shell=True)
+      custom = "-f {0} -vcodec copy -an".format(in_extension)
+
+    elif in_extension == "gif":
+      bitrate = "{0}M".format(args.quality, args.quality, args.quality)
+      custom = "-f webm -minrate {0} -maxrate {1} -b:v {2}".format(bitrate, bitrate, bitrate)
+
     else:
       print("Not a supported filetype. Aborting.")
       exit()
+
+    parameters = "-i {0} -y -loglevel quiet {1}".format(args.input, custom)
+    
+    call("{0} {1} {2}".format(ffmpeg, parameters, temp.name), shell=True)
 
 if __name__ == "__main__":
   main()
