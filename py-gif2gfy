@@ -55,19 +55,14 @@ html = Template(
 
 def main():
 
-  parser = ArgumentParser("gif2gfy")
-  parser.add_argument("-i", "--infile", help="Input file")
+  parser = ArgumentParser(prog="gif2gfy", description="An FFmpeg frontend for converting gifs into standalone gfy files.")
+  parser.add_argument("-i", "--infile", required=True, help="Input file")
   parser.add_argument("-c", "--color", default="black", help="Choose background color of gfy; default is black")
   parser.add_argument("-o", "--outfile", help="Set filename of output; default is o.{mp4,webm}.html")
   parser.add_argument("-p", "--path", help="Specify a custom directory to look for FFmpeg and FFprobe")
   parser.add_argument("-q", "--quality", default="3.5", help="Set bitrate in MBs for gif-to-webm conversion; default is 3.5")
   parser.add_argument("-t", "--title", help="Set title in HTML page; default is whatever -o is set to")
-
   args = vars(parser.parse_args())
-
-  if not args["infile"]:
-    print("No file specified. Aborting.")
-    exit()
 
   if not isfile(args["infile"]):
     print("{0} isn't a file. Aborting.".format(args["infile"]))
