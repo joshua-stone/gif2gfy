@@ -79,12 +79,15 @@ def main():
   sensible fallback
   """
   if args["path"]:
-    custom_ffmpeg = abspath(args["path"]) + sep + "ffmpeg"
-    custom_ffprobe = abspath(args["path"]) + sep + "ffprobe"
+    full_path = abspath(args["path"]) + sep 
+    custom_ffmpeg, custom_ffprobe = full_path + "ffmpeg", full_path + "ffprobe"
 
     if is_executable(custom_ffmpeg) and is_executable(custom_ffprobe):
       ffmpeg = custom_ffmpeg
       ffprobe = custom_ffprobe
+    else:
+      print("{0} doesn't have FFmpeg or FFprobe. Aborting.".format(full_path))
+      exit()
 
   else: 
   # Python3.3 shutil.which(), which is a more reliable method for checking
