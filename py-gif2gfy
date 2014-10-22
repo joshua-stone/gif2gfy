@@ -132,7 +132,7 @@ def main():
     }
   
   with open(outfile, "w") as f:
-    f.write(html.safe_substitute(data))
+    f.write(html.substitute(data))
 
 if __name__ == "__main__":
   main()
