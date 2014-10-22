@@ -148,8 +148,12 @@ def main():
     "data": b64encode(video_data)
   }
 
-  with open(outfile, "w") as f:
+  full_outfile_path = abspath(outfile)
+
+  with open(full_outfile_path, "w") as f:
     f.write(html.substitute(data))
+
+  print(full_outfile_path)
 
 if __name__ == "__main__":
   main()
