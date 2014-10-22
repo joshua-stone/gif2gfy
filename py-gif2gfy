@@ -3,17 +3,21 @@
 from argparse import ArgumentParser
 from sys import exit, version_info
 from mimetypes import guess_type
-from os.path import isfile
+from os.path import isfile, abspath
 from base64 import b64encode
 from string import Template
 from subprocess import Popen, PIPE
 from json import loads
+from os import sep, access, X_OK
 
 def get_mimetype(filename):
   return(guess_type(filename)[0])
 
 def get_extension(filename):
   return(get_mimetype(filename).split("/")[1])
+
+def is_executable(filename):
+  return(isfile(filename) and access(filename, X_OK))
 
 html = Template(
 """<!DOCTYPE html>
@@ -69,17 +73,30 @@ def main():
     print("{0} isn't a file. Aborting.".format(args["infile"]))
     exit()
 
+  """
+  Often FFmpeg isn't available due to lack of packaging on Windows and
+  Debian-based distros, so being able to define a custom path is a
+  sensible fallback
+  """
+  if args["path"]:
+    custom_ffmpeg = abspath(args["path"]) + sep + "ffmpeg"
+    custom_ffprobe = abspath(args["path"]) + sep + "ffprobe"
+
+    if is_executable(custom_ffmpeg) and is_executable(custom_ffprobe):
+      ffmpeg = custom_ffmpeg
+      ffprobe = custom_ffprobe
+
+  else: 
   # Python3.3 shutil.which(), which is a more reliable method for checking
   # program availability than distutils.spawn.find_executable()
-  if version_info >= (3, 3):
-    from shutil import which
-  else:
-    from distutils.spawn import find_executable as which
+    if version_info >= (3, 3):
+      from shutil import which
+    else:
+      from distutils.spawn import find_executable as which
 
-  #ffmpeg, ffprobe ="ffmpeg-2.4.2-64bit-static/ffmpeg", "ffmpeg-2.4.2-64bit-static/ffprobe"
-  ffmpeg, ffprobe = which("ffmpeg"), which("ffprobe")
+    ffmpeg, ffprobe = which("ffmpeg"), which("ffprobe")
 
-  if not ffmpeg or ffprobe:
+  if not ffmpeg or not ffprobe:
     print("FFmpeg needs to be installed to continue. Aborting.")
     exit()
   
