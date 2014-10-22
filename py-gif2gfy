@@ -82,35 +82,37 @@ def main():
   else:
     from distutils.spawn import find_executable as which
 
-  ffmpeg, ffprobe = which("ffmpeg"), which("ffprobe")
+  ffmpeg, ffprobe ="ffmpeg-2.4.2-64bit-static/ffmpeg", "ffmpeg-2.4.2-64bit-static/ffprobe"
+  #ffmpeg, ffprobe = which("ffmpeg"), which("ffprobe")
 
-  if not ffmpeg or ffprobe:
-    print("FFmpeg needs to be installed to continue. Aborting.")
-    exit()
+  #if not ffmpeg or ffprobe:
+  #  print("FFmpeg needs to be installed to continue. Aborting.")
+  #  exit()
   
   in_mimetype = get_mimetype(args["infile"])
   in_extension = get_extension(args["infile"])
 
   with NamedTemporaryFile() as temp:
     if in_extension in ("webm", "mp4"):
-      custom = "-f {0} -vcodec copy -an".format(in_extension)
+      custom = ["-f", in_extension, "-vcodec", "copy", "-an"]
+
       out_mimetype, out_extension = in_mimetype, in_extension
 
     elif in_mimetype == "image/gif":
-      bitrate = "{0}M".format(args["quality"], args["quality"], args["quality"])
-      custom = "-f webm -minrate {0} -maxrate {1} -b:v {2}".format(bitrate, bitrate, bitrate)
+      bitrate = "{0}M".format(args["quality"])
+      custom = ["-f", "webm", "-minrate", bitrate, "-maxrate", bitrate, "-b:v", bitrate]
       out_mimetype, out_extension = "video/webm", "webm"
 
     else:
       print("Not a supported filetype. Aborting.")
       exit()
 
-    ffmpeg_parameters = "-i {0} -y -loglevel quiet {1}".format(args["infile"], custom)
+    call_ffmpeg = [ffmpeg, "-i", args["infile"], "-y", "-loglevel", "quiet"] + custom + [temp.name]
  
-    call("{0} {1} {2}".format(ffmpeg, ffmpeg_parameters, temp.name), shell=True)
+    call(call_ffmpeg)
 
-    ffprobe_parameters = "-loglevel quiet -show_entries stream=width,height -print_format json -i"
-    out = Popen("{0} {1} {2}".format(ffprobe, ffprobe_parameters, temp.name), stdout=PIPE, shell=True)
+    call_ffprobe = [ffprobe, "-i", temp.name, "-loglevel", "quiet", "-show_entries", "stream=width,height", "-print_format", "json"]
+    out = Popen(call_ffprobe, stdout=PIPE)
     output, err = out.communicate()
 
     json = loads(output.decode("utf-8"))
