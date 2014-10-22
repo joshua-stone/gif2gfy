@@ -147,6 +147,7 @@ def main():
       "color": args["color"],
       "data": b64encode(video_data)
     })
+    write_mode = "w"
 
   else:
     if args["outfile"]:
@@ -154,11 +155,11 @@ def main():
     else:
       outfile = "o.{0}".format(out_extension)
 
-    data = video_data
+    data, write_mode = video_data, "wb"
 
   full_outfile_path = abspath(outfile)
 
-  with open(full_outfile_path, "wb") as f:
+  with open(full_outfile_path, write_mode) as f:
     f.write(data)
  
   print(full_outfile_path)
