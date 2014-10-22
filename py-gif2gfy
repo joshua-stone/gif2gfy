@@ -131,12 +131,14 @@ def main():
 
   dimensions = json["streams"][0]
   
-  if not args["outfile"]:
-    outfile = "o.{0}.html".format(out_extension)
-  else:
+  if args["outfile"]:
     outfile = args["outfile"]
+  else:
+    outfile = "o.{0}.html".format(out_extension)
 
-  if not args["title"]:
+  if args["title"]:
+    title = args["title"]
+  else:
     title = outfile
 
   data = {
