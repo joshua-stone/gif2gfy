@@ -19,10 +19,10 @@ def get_extension(filename):
 
 def to_base64(filename):
   with open(filename, "rb") as f:
-    return(b64encode(f.read()))
+    return(b64encode(f.read()).decode("utf-8"))
 
-html = Template("""
-<!DOCTYPE html>
+html = Template(
+"""<!DOCTYPE html>
 <html>
   <meta charset=\"utf-8\">
   <title>$title (${width}x${height}px)</title>
@@ -42,7 +42,7 @@ html = Template("""
       display: table-cell;
       vertical-align: middle;
       text-align: center;
-      background-color: ${COLOR};
+      background-color: ${color};
     }
     video, source {
       display: block;
@@ -52,27 +52,27 @@ html = Template("""
   <video width=\"${width}\" height=\"${height}\" autoplay=\"autoplay\" loop=\"\">
     <source type=\"${mimetype}\" src=\"data:${mimetype};base64,${data}\">
   </video>
-</html>
-""")
+</html>"""
+)
 
 def main():
 
   parser = ArgumentParser("gif2gfy")
-  parser.add_argument("-i", "--input", help="Input file")
-  parser.add_argument("-c", "--color", help="Choose background color of gfy; default is black")
-  parser.add_argument("-o" "--output", help="Set filename of output; default is o.{mp4,webm}.html")
+  parser.add_argument("-i", "--infile", help="Input file")
+  parser.add_argument("-c", "--color", default="black", help="Choose background color of gfy; default is black")
+  parser.add_argument("-o", "--outfile", help="Set filename of output; default is o.{mp4,webm}.html")
   parser.add_argument("-p", "--path", help="Specify a custom directory to look for FFmpeg and FFprobe")
-  parser.add_argument("-q", "--quality", help="Set bitrate in MBs for gif-to-webm conversion; default is 3.5")
+  parser.add_argument("-q", "--quality", default="3.5", help="Set bitrate in MBs for gif-to-webm conversion; default is 3.5")
   parser.add_argument("-t", "--title", help="Set title in HTML page; default is whatever -o is set to")
 
-  args = parser.parse_args()
+  args = vars(parser.parse_args())
 
-  if not args.input:
+  if not args["infile"]:
     print("No file specified. Aborting.")
     exit()
 
-  if not isfile(args.input):
-    print("{0} isn't a file. Aborting.".format(args.input))
+  if not isfile(args["infile"]):
+    print("{0} isn't a file. Aborting.".format(args["infile"]))
     exit()
 
   # Python3.3 adds sys.version_info, which is a more reliable method for checking
@@ -83,30 +83,30 @@ def main():
     from distutils.spawn import find_executable as which
 
   ffmpeg, ffprobe = which("ffmpeg"), which("ffprobe")
-  
+
   if not ffmpeg or ffprobe:
     print("FFmpeg needs to be installed to continue. Aborting.")
     exit()
   
-  in_mimetype = get_mimetype(args.input)
-  in_extension = get_extension(args.input)
+  in_mimetype = get_mimetype(args["infile"])
+  in_extension = get_extension(args["infile"])
 
   with NamedTemporaryFile() as temp:
     if in_extension in ("webm", "mp4"):
       custom = "-f {0} -vcodec copy -an".format(in_extension)
-      out_mimetype = in_mimetype
+      out_mimetype, out_extension = in_mimetype, in_extension
 
-    elif in_extension == "gif":
-      bitrate = "{0}M".format(args.quality, args.quality, args.quality)
+    elif in_mimetype == "image/gif":
+      bitrate = "{0}M".format(args["quality"], args["quality"], args["quality"])
       custom = "-f webm -minrate {0} -maxrate {1} -b:v {2}".format(bitrate, bitrate, bitrate)
-      out_mimetype = "video/webm"
+      out_mimetype, out_extension = "video/webm", "webm"
 
     else:
       print("Not a supported filetype. Aborting.")
       exit()
 
-    ffmpeg_parameters = "-i {0} -y -loglevel quiet {1}".format(args.input, custom)
-    
+    ffmpeg_parameters = "-i {0} -y -loglevel quiet {1}".format(args["infile"], custom)
+ 
     call("{0} {1} {2}".format(ffmpeg, ffmpeg_parameters, temp.name), shell=True)
 
     ffprobe_parameters = "-loglevel quiet -show_entries stream=width,height -print_format json -i"
@@ -115,6 +115,24 @@ def main():
 
     json = loads(output.decode("utf-8"))
     dimensions = json["streams"][0]
+
+    if not args["outfile"]:
+      outfile = "o.{0}.html".format(out_extension)
+
+    if not args["title"]:
+      title = outfile
+
+    d = {
+      "title": title,
+      "mimetype": out_mimetype,
+      "width": dimensions["width"],
+      "height": dimensions["height"],
+      "color": args["color"],
+      "data": to_base64(temp.name)
+    }
+  
+  with open(outfile, "w") as f:
+    f.write(html.safe_substitute(d))
 
 if __name__ == "__main__":
   main()
