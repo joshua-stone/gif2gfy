@@ -133,6 +133,8 @@ def main():
   
   if not args["outfile"]:
     outfile = "o.{0}.html".format(out_extension)
+  else:
+    outfile = args["outfile"]
 
   if not args["title"]:
     title = outfile
@@ -145,7 +147,7 @@ def main():
     "color": args["color"],
     "data": b64encode(video_data)
   }
-  
+
   with open(outfile, "w") as f:
     f.write(html.substitute(data))
 
