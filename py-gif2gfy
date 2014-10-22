@@ -4,8 +4,6 @@ from argparse import ArgumentParser
 from sys import exit, version_info
 from mimetypes import guess_type
 from os.path import isfile
-from tempfile import NamedTemporaryFile
-from subprocess import call
 from base64 import b64encode
 from string import Template
 from subprocess import Popen, PIPE
@@ -16,10 +14,6 @@ def get_mimetype(filename):
 
 def get_extension(filename):
   return(get_mimetype(filename).split("/")[1])
-
-def to_base64(filename):
-  with open(filename, "rb") as f:
-    return(b64encode(f.read()).decode("utf-8"))
 
 html = Template(
 """<!DOCTYPE html>
@@ -82,55 +76,55 @@ def main():
   else:
     from distutils.spawn import find_executable as which
 
-  ffmpeg, ffprobe = which("ffmpeg"), which("ffprobe")
+  ffmpeg, ffprobe ="ffmpeg-2.4.2-64bit-static/ffmpeg", "ffmpeg-2.4.2-64bit-static/ffprobe"
+  #ffmpeg, ffprobe = which("ffmpeg"), which("ffprobe")
 
-  if not ffmpeg or ffprobe:
-    print("FFmpeg needs to be installed to continue. Aborting.")
-    exit()
+  #if not ffmpeg or ffprobe:
+  #  print("FFmpeg needs to be installed to continue. Aborting.")
+  #  exit()
   
   in_mimetype = get_mimetype(args["infile"])
   in_extension = get_extension(args["infile"])
 
-  with NamedTemporaryFile() as temp:
-    if in_extension in ("webm", "mp4"):
-      custom = ["-f", in_extension, "-vcodec", "copy", "-an"]
+  if in_extension in ("webm", "mp4"):
+    custom = ["-f", "webm", "-vcodec", "copy", "-an"]
 
-      out_mimetype, out_extension = in_mimetype, in_extension
+    out_mimetype, out_extension = in_mimetype, in_extension
 
-    elif in_mimetype == "image/gif":
-      bitrate = "{0}M".format(args["quality"])
-      custom = ["-f", "webm", "-minrate", bitrate, "-maxrate", bitrate, "-b:v", bitrate]
-      out_mimetype, out_extension = "video/webm", "webm"
+  elif in_mimetype == "image/gif":
+    bitrate = "{0}M".format(args["quality"])
+    custom = ["-f", "webm", "-minrate", bitrate, "-maxrate", bitrate, "-b:v", bitrate]
+    out_mimetype, out_extension = "video/webm", "webm"
 
-    else:
-      print("Not a supported filetype. Aborting.")
-      exit()
-
-    call_ffmpeg = [ffmpeg, "-i", args["infile"], "-y", "-loglevel", "quiet"] + custom + [temp.name]
+  else:
+    print("Not a supported filetype. Aborting.")
+    exit()
  
-    call(call_ffmpeg)
+  call_ffmpeg = [ffmpeg, "-i", args["infile"], "-loglevel", "quiet"] + custom + ["pipe:1"]
+  ffmpeg_output = Popen(call_ffmpeg, stdout=PIPE)
+  video_data, err = ffmpeg_output.communicate()
 
-    call_ffprobe = [ffprobe, "-i", temp.name, "-loglevel", "quiet", "-show_entries", "stream=width,height", "-print_format", "json"]
-    out = Popen(call_ffprobe, stdout=PIPE)
-    output, err = out.communicate()
+  call_ffprobe = [ffprobe, "-i", "-", "-loglevel", "quiet", "-show_entries", "stream=width,height", "-print_format", "json"]
+  ffprobe_output = Popen(call_ffprobe, stdin=PIPE, stdout=PIPE)
+  raw_json = ffprobe_output.communicate(input=video_data)[0]
+  json = loads(raw_json.decode("utf-8"))
 
-    json = loads(output.decode("utf-8"))
-    dimensions = json["streams"][0]
+  dimensions = json["streams"][0]
+  
+  if not args["outfile"]:
+    outfile = "o.{0}.html".format(out_extension)
 
-    if not args["outfile"]:
-      outfile = "o.{0}.html".format(out_extension)
+  if not args["title"]:
+    title = outfile
 
-    if not args["title"]:
-      title = outfile
-
-    data = {
-      "title": title,
-      "mimetype": out_mimetype,
-      "width": dimensions["width"],
-      "height": dimensions["height"],
-      "color": args["color"],
-      "data": to_base64(temp.name)
-    }
+  data = {
+    "title": title,
+    "mimetype": out_mimetype,
+    "width": dimensions["width"],
+    "height": dimensions["height"],
+    "color": args["color"],
+    "data": b64encode(video_data)
+  }
   
   with open(outfile, "w") as f:
     f.write(html.substitute(data))
