@@ -58,9 +58,9 @@ def main():
   parser = ArgumentParser(prog="gif2gfy", description="An FFmpeg frontend for converting gifs into standalone gfy files.")
   parser.add_argument("-i", "--infile", required=True, help="Input file")
   parser.add_argument("-c", "--color", default="black", help="Choose background color of gfy; default is black")
-  parser.add_argument("-o", "--outfile", help="Set filename of output; default is o.{mp4,webm}.html")
+  parser.add_argument("-o", "--outfile", help="Set filename of output; default is o.(mp4|webm).html")
   parser.add_argument("-p", "--path", help="Specify a custom directory to look for FFmpeg and FFprobe")
-  parser.add_argument("-q", "--quality", default="3.5", help="Set bitrate in MBs for gif-to-webm conversion; default is 3.5")
+  parser.add_argument("-q", "--quality", default="2", help="Set bitrate in MBs for gif-to-webm conversion; default is 2")
   parser.add_argument("-t", "--title", help="Set title in HTML page; default is whatever -o is set to")
   parser.add_argument("-v", "--video", action="store_true", help="Output pure video instead of HTML")
 
