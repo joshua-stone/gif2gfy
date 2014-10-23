@@ -1,152 +1,30 @@
-#!/bin/sh
+#!/usr/bin/env python
 
-# Make script halt if encountering an error, as opposed to the standard shell
-# behavior of ignoring them
-set -e
+from argparse import ArgumentParser
+from sys import exit, version_info
+from mimetypes import guess_type
+from os.path import isfile, abspath, basename
+from base64 import b64encode
+from string import Template
+from subprocess import Popen, PIPE
+from json import loads
+from os import sep, access, X_OK
 
-# Use a POSIX-friendly way of detecting whether a command is installed
-is_available() {
-  command -v "${1}" > /dev/null 2>&1
-}
+def get_mimetype(filename):
+  return(guess_type(filename)[0])
 
-is_null() {
-  [ -z "${1}" ]
-}
+def get_extension(filename):
+  return(get_mimetype(filename).split("/")[1])
 
-get_mimetype() {
-  FILE="${1}"
-
-  file --brief --mime-type "${FILE}"
-}
-
-while getopts ":p:c:i:o:q:t:h" opt; do
-  case $opt in
-    h)
-      echo "An FFmpeg frontend for converting gifs into standalone gfy files."
-      echo
-      echo "Usage: gif2gfy -i infile -o outfile"
-      echo
-      echo "Getting help:"
-      echo "  -h     Print basic options available"
-      echo
-      echo "Flags available:"
-      echo "  -c     Choose background color of gfy; default is black"
-      echo "  -o     Set filename of output; default is o.{mp4,webm}.html"
-      echo "  -p     Specify a custom directory to look for FFmpeg and FFprobe"
-      echo "  -q     Set bitrate in MBs for gif-to-webm conversion; default is 3.5"
-      echo "  -t     Set title in HTML page; default is whatever -o is set to"
-      exit 1
-      ;;
-    i)
-      IN_FILE="${OPTARG}"
-      ;;
-    c)
-      COLOR="${OPTARG}"
-      ;;
-    o)
-      OUT_FILE="${OPTARG}"
-      ;;
-    p)
-      P="${OPTARG}"
-      ;;
-    q)
-      Q="${OPTARG}"
-      ;;
-    t)
-      TITLE="${OPTARG}"
-      ;;
-    \?)
-      echo "Invalid option: -$OPTARG. Aborting" >&2
-      exit 1
-      ;;
-    :)
-      echo "Option -$OPTARG requires an argument. Aborting." >&2
-      exit 1
-      ;;
-  esac
-done
-
-# Set default values if they aren't defined in GETOPTS
-if is_null "${Q}"; then
-  Q="3.5"
-fi
-
-if is_null "${COLOR}"; then
-  COLOR="black"
-fi
-
-if [ -n "${P}" ]; then
-  FULL_PATH="$(realpath "${P}")"
-
-  if [ -x "${FULL_PATH}/ffmpeg" ] && [ -x "${FULL_PATH}/ffprobe" ]; then
-    BACKEND="${FULL_PATH}/ffmpeg"
-    PROBE="${FULL_PATH}/ffprobe"
-  else
-    echo "FFmpeg and FFprobe aren't available on ${FULL_PATH}. Aborting."
-    exit 1
-  fi
-elif is_available "ffmpeg" && is_available "ffprobe"; then
-  BACKEND="ffmpeg"
-  PROBE="ffprobe"
-else
-  echo "FFmpeg needs to be installed to continue. Aborting."
-  exit 1
-fi
-
-if is_null "${IN_FILE}"; then
-  echo "No file specified. Aborting."
-  exit 1
-fi
-
-if [ ! -f "${IN_FILE}" ]; then
-  echo "${INPUT} isn't a file. Aborting."
-  exit 1
-fi
-
-IN_MIMETYPE="$(get_mimetype "${IN_FILE}")"
-IN_EXTENSION="${IN_MIMETYPE#*/}"
-
-# Temporary location for FFmpeg output that'll be deleted once the script ends
-GFY="$(mktemp --dry-run)" || echo 1
-trap 'rm -f "${GFY}"' EXIT
-
-# If file is .webm, then simply extract the encoded video losslessly
-if [ "${IN_MIMETYPE}" = "video/webm" ] || [ "${IN_MIMETYPE}" = "video/mp4" ]; then
-  PARAMETERS="-f ${IN_EXTENSION} -loglevel quiet -vcodec copy -an"
-  "${BACKEND}" -i "${IN_FILE}" ${PARAMETERS} "${GFY}"
-
-elif [ "${IN_MIMETYPE}" = "image/gif" ]; then
-  PARAMETERS="-f webm -loglevel quiet -minrate ${Q}M -maxrate ${Q}M -b:v ${Q}M"
-  "${BACKEND}" -i "${IN_FILE}" ${PARAMETERS} "${GFY}"
-else
-  echo "Not a supported filetype. Aborting."
-  exit 1
-fi
-
-PARAMETERS="-loglevel quiet -show_entries stream=width,height -print_format csv"
-VIDEO_DATA="$("${PROBE}" "${GFY}" ${PARAMETERS})"
-
-OUT_MIMETYPE="$(get_mimetype "${GFY}")"
-OUT_EXTENSION="${OUT_MIMETYPE#*/}"
-
-WIDTH="$(echo "${VIDEO_DATA}" | cut -d "," -f2)"
-HEIGHT="$(echo "${VIDEO_DATA}"|  cut -d "," -f3)"
-DATA="$(base64 --wrap 0 "${GFY}")"
-
-if is_null "${OUT_FILE}"; then
-  OUT_FILE="o.${OUT_EXTENSION}.html"
-fi
-
-if is_null "${TITLE}"; then
-  TITLE="${OUT_FILE}"
-fi
-
-cat << HTML > "${OUT_FILE}"
-<!DOCTYPE html>
+def is_executable(filename):
+  return(isfile(filename) and access(filename, X_OK))
+  
+html = Template(
+"""<!DOCTYPE html>
 <html>
-  <meta charset="utf-8">
-  <title>${TITLE} (${WIDTH}x${HEIGHT}px)</title>
-  <style type="text/css">
+  <meta charset=\"utf-8\">
+  <title>$title (${width}x${height}px)</title>
+  <style type=\"text/css\">
     * {
       margin: 0;
       padding: 0;
@@ -162,17 +40,130 @@ cat << HTML > "${OUT_FILE}"
       display: table-cell;
       vertical-align: middle;
       text-align: center;
-      background-color: ${COLOR};
+      background-color: ${color};
     }
     video, source {
       display: block;
       margin: 0 auto;
     }
   </style>
-  <video width="${WIDTH}" height="${HEIGHT}" autoplay="autoplay" loop="">
-    <source type="${OUT_MIMETYPE}" src="data:${OUT_MIMETYPE};base64,${DATA}">
+  <video width=\"${width}\" height=\"${height}\" autoplay=\"autoplay\" loop=\"\">
+    <source type=\"${mimetype}\" src=\"data:${mimetype};base64,${data}\">
   </video>
-</html>
-HTML
+</html>"""
+)
 
-realpath "${OUT_FILE}"
+def main():
+
+  parser = ArgumentParser(prog="gif2gfy", description="An FFmpeg frontend for converting gifs into standalone gfy files.")
+  parser.add_argument("-i", "--infile", required=True, help="Input file")
+  parser.add_argument("-c", "--color", default="black", help="Choose background color of gfy; default is black")
+  parser.add_argument("-o", "--outfile", help="Set filename of output; default is o.{mp4,webm}.html")
+  parser.add_argument("-p", "--path", help="Specify a custom directory to look for FFmpeg and FFprobe")
+  parser.add_argument("-q", "--quality", default="3.5", help="Set bitrate in MBs for gif-to-webm conversion; default is 3.5")
+  parser.add_argument("-t", "--title", help="Set title in HTML page; default is whatever -o is set to")
+  parser.add_argument("-v", "--video", action="store_true", help="Output pure video instead of HTML")
+
+  args = vars(parser.parse_args())
+
+  if not isfile(args["infile"]):
+    print("{0} isn't a file. Aborting.".format(args["infile"]))
+    exit()
+
+  """
+  Often FFmpeg isn't available due to lack of packaging on Windows and
+  Debian-based distros, so being able to define a custom path is a
+  sensible fallback
+  """
+  if args["path"]:
+    full_path = abspath(args["path"]) + sep 
+    custom_ffmpeg, custom_ffprobe = full_path + "ffmpeg", full_path + "ffprobe"
+
+    if is_executable(custom_ffmpeg) and is_executable(custom_ffprobe):
+      ffmpeg = custom_ffmpeg
+      ffprobe = custom_ffprobe
+    else:
+      print("{0} doesn't have FFmpeg or FFprobe. Aborting.".format(full_path))
+      exit()
+
+  else: 
+  # Python3.3 shutil.which(), which is a more reliable method for checking
+  # program availability than distutils.spawn.find_executable()
+    if version_info >= (3, 3):
+      from shutil import which
+    else:
+      from distutils.spawn import find_executable as which
+
+    ffmpeg, ffprobe = which("ffmpeg"), which("ffprobe")
+
+  if not ffmpeg or not ffprobe:
+    print("FFmpeg needs to be installed to continue. Aborting.")
+    exit()
+  
+  in_mimetype = get_mimetype(args["infile"])
+  in_extension = get_extension(args["infile"])
+
+  if in_extension in ("webm", "mp4"):
+    custom = ["-f", "webm", "-vcodec", "copy", "-an"]
+
+    out_mimetype, out_extension = in_mimetype, in_extension
+
+  elif in_mimetype == "image/gif":
+    bitrate = "{0}M".format(args["quality"])
+    custom = ["-f", "webm", "-minrate", bitrate, "-maxrate", bitrate, "-b:v", bitrate]
+    out_mimetype, out_extension = "video/webm", "webm"
+
+  else:
+    print("Not a supported filetype. Aborting.")
+    exit()
+ 
+  call_ffmpeg = [ffmpeg, "-i", args["infile"], "-loglevel", "quiet"] + custom + ["pipe:1"]
+  ffmpeg_output = Popen(call_ffmpeg, stdout=PIPE)
+  video_data, err = ffmpeg_output.communicate()
+
+  if not args["video"]:
+    call_ffprobe = [ffprobe, "-i", "-", "-loglevel", "quiet", "-show_entries", "stream=width,height", "-print_format", "json"]
+    ffprobe_output = Popen(call_ffprobe, stdin=PIPE, stdout=PIPE)
+    raw_json = ffprobe_output.communicate(input=video_data)[0]
+    json = loads(raw_json.decode("utf-8"))
+
+    dimensions = json["streams"][0]
+  
+    if args["outfile"]:
+      outfile = args["outfile"]
+    else:
+      outfile = "o.{0}.html".format(out_extension)
+
+    if args["title"]:
+      title = args["title"]
+    else:
+      title = basename(outfile)
+
+    data = html.substitute({
+      "title": title,
+      "mimetype": out_mimetype,
+      "width": dimensions["width"],
+      "height": dimensions["height"],
+      "color": args["color"],
+      "data": b64encode(video_data).decode("utf-8")
+    })
+    write_mode = "w"
+
+  else:
+    if args["outfile"]:
+      outfile = args["outfile"]
+    else:
+      outfile = "o.{0}".format(out_extension)
+
+    data, write_mode = video_data, "wb"
+
+  full_outfile_path = abspath(outfile)
+
+  with open(full_outfile_path, write_mode) as f:
+    f.write(data)
+ 
+  print(full_outfile_path)
+
+if __name__ == "__main__":
+  main()
+
