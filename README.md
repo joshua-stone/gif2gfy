@@ -28,6 +28,33 @@ proper replacements for the gif format. In the meantime, this project serves as
 a stopgap solution so that users can benefit from much smaller and smoother
 animations.
 
+## Dependencies
+
+    ffmpeg
+    python2.7 or newer
+
+#### Installing FFmpeg in Ubuntu 14.04 LTS
+
+Current releases of Ubuntu don't have FFmpeg in the main repository, but adding
+a PPA is a simple solution:
+
+    sudo add-apt-repository -y ppa:mc3man/trusty-media
+    sudo apt-get update
+    sudo apt-get install -y ffmpeg
+
+#### Using Linux static builds
+
+Alternatively, static builds endorsed by the [FFmpeg project](https://www.ffmpeg.org/download.html#build-linux) can be found at the
+link below:
+
+    http://johnvansickle.com/ffmpeg/  
+
+An example of using Gif2gfy with static 64-bit FFmpeg:
+
+    mkdir ffmpeg
+    wget http://johnvansickle.com/ffmpeg/releases/ffmpeg-2.4.2-64bit-static.tar.xz -O - | tar xfJ - -C ffmpeg --strip-components 1
+    gif2gfy -p ffmpeg/ -i infile.gif
+    
 ## Usage
 
 ####Getting information
