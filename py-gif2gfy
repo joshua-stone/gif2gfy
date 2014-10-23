@@ -18,7 +18,7 @@ def get_extension(filename):
 
 def is_executable(filename):
   return(isfile(filename) and access(filename, X_OK))
-
+  
 html = Template(
 """<!DOCTYPE html>
 <html>
@@ -145,7 +145,7 @@ def main():
       "width": dimensions["width"],
       "height": dimensions["height"],
       "color": args["color"],
-      "data": b64encode(video_data)
+      "data": b64encode(video_data).decode("utf-8")
     })
     write_mode = "w"
 
