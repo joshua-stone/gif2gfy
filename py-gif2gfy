@@ -3,7 +3,7 @@
 from argparse import ArgumentParser
 from sys import exit, version_info
 from mimetypes import guess_type
-from os.path import isfile, abspath
+from os.path import isfile, abspath, basename
 from base64 import b64encode
 from string import Template
 from subprocess import Popen, PIPE
@@ -137,7 +137,7 @@ def main():
     if args["title"]:
       title = args["title"]
     else:
-      title = outfile
+      title = basename(outfile)
 
     data = html.substitute({
       "title": title,
