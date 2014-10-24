@@ -18,6 +18,39 @@ def get_extension(filename):
 
 def is_executable(filename):
   return(isfile(filename) and access(filename, X_OK))
+
+class ffmpeg(object):
+  """
+  Encapsulate FFmpeg in a class for easier manipulation and better
+  maintainability
+  """
+  def __init__(self, ffmpeg, ffprobe):
+    self.ffmpeg, self.ffprobe = ffmpeg, ffprobe
+
+  def extract_video_to_stream(self, infile):
+    ffmpeg_parameters = [
+      self.ffmpeg,
+      "-i", infile,
+      "-loglevel", "quiet",
+      "-vcodec", "copy",
+      "-an",
+      "pipe:1"
+    ]
+
+    ffprobe = Popen(ffprobe_parameters, stdout=PIPE)
+    return(ffprobe.communicate(input=video)[0])
+
+  def extract_video_to_file(self, infile, outfile):
+    ffmpeg_parameters = [
+      self.ffmpeg,
+      "-i", infile,
+      "-loglevel", "quiet",
+      "-vcodec", "copy",
+      "-an",
+      outfile
+    ]
+
+    return(check_call(ffmpeg_parameters))
   
 html = Template(
 """<!DOCTYPE html>
