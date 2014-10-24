@@ -6,7 +6,7 @@ from mimetypes import guess_type
 from os.path import isfile, abspath, basename
 from base64 import b64encode
 from string import Template
-from subprocess import Popen, PIPE
+from subprocess import Popen, PIPE, check_output, check_call
 from json import loads
 from os import sep, access, X_OK
 
@@ -38,6 +38,7 @@ class ffmpeg(object):
     ]
 
     ffprobe = Popen(ffprobe_parameters, stdout=PIPE)
+
     return(ffprobe.communicate(input=video)[0])
 
   def extract_video_to_file(self, infile, outfile):
@@ -51,7 +52,51 @@ class ffmpeg(object):
     ]
 
     return(check_call(ffmpeg_parameters))
-  
+
+   def to_webm_stream(self, infile, bitrate="2.0"):
+    bitrate = "{0}M".format(bitrate)
+    ffmpeg_parameters = [
+      self.ffmpeg,
+      "-i", infile,
+      "-loglevel", "quiet", 
+      "-f", "webm",
+      "-minrate", bitrate,
+      "-maxrate", bitrate,
+      "-b:v", bitrate,
+      "pipe:1"
+    ]
+
+    return(check_output(ffmpeg_parameters))
+
+  def get_data_from_stream(self, video):
+    call_ffprobe = [
+      self.ffprobe,
+      "-i", "-",
+      "-loglevel", "quiet",
+      "-show_streams",
+      "-print_format", "json"
+    ]
+
+    ffprobe = Popen(call_ffprobe, stdin=PIPE, stdout=PIPE)
+    raw_json = ffprobe.communicate(input=video)[0]
+    json = loads(raw_json.decode())
+
+    return(json["streams"][0])
+
+  def get_data_from_file(self, video_file):
+    call_ffprobe = [
+      self.ffprobe,
+      "-i", video_file,
+      "-loglevel", "quiet",
+      "-show_streams",
+      "-print_format", "json"
+    ]
+
+    raw_json = check_output(call_ffprobe)
+    json = loads(raw_json.decode())
+
+    return(json["streams"][0])
+
 html = Template(
 """<!DOCTYPE html>
 <html>
