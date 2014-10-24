@@ -131,7 +131,6 @@ html = Template(
 )
 
 def main():
-
   parser = ArgumentParser(prog="gif2gfy", description="An FFmpeg frontend for converting gifs into standalone gfy files.")
   parser.add_argument("-i", "--infile", required=True, help="Input file")
   parser.add_argument("-c", "--color", default="black", help="Choose background color of gfy; default is black")
@@ -172,7 +171,7 @@ def main():
 
     ff = ffmpeg(which("ffmpeg"), which("ffprobe"))
 
-  if not ff:
+  if not ff.ffmpeg or not ff.ffprobe:
     print("FFmpeg needs to be installed to continue. Aborting.")
     exit()
   
