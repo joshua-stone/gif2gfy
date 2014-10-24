@@ -104,7 +104,7 @@ def main():
   in_extension = get_extension(args["infile"])
 
   if in_extension in ("webm", "mp4"):
-    custom = ["-f", "webm", "-vcodec", "copy", "-an"]
+    custom = ["-f", in_extension, "-vcodec", "copy", "-an"]
 
     out_mimetype, out_extension = in_mimetype, in_extension
 
@@ -126,7 +126,6 @@ def main():
     ffprobe_output = Popen(call_ffprobe, stdin=PIPE, stdout=PIPE)
     raw_json = ffprobe_output.communicate(input=video_data)[0]
     json = loads(raw_json.decode("utf-8"))
-
     dimensions = json["streams"][0]
   
     if args["outfile"]:
