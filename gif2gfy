@@ -31,15 +31,14 @@ class ffmpeg(object):
     ffmpeg_parameters = [
       self.ffmpeg,
       "-i", infile,
+      "-f", "webm",
       "-loglevel", "quiet",
       "-vcodec", "copy",
       "-an",
       "pipe:1"
     ]
 
-    ffprobe = Popen(ffprobe_parameters, stdout=PIPE)
-
-    return(ffprobe.communicate(input=video)[0])
+    return(check_output(ffmpeg_parameters))
 
   def extract_video_to_file(self, infile, outfile):
     ffmpeg_parameters = [
@@ -53,7 +52,7 @@ class ffmpeg(object):
 
     return(check_call(ffmpeg_parameters))
 
-   def to_webm_stream(self, infile, bitrate="2.0"):
+  def to_webm_stream(self, infile, bitrate="2.0"):
     bitrate = "{0}M".format(bitrate)
     ffmpeg_parameters = [
       self.ffmpeg,
@@ -158,8 +157,7 @@ def main():
     custom_ffmpeg, custom_ffprobe = full_path + "ffmpeg", full_path + "ffprobe"
 
     if is_executable(custom_ffmpeg) and is_executable(custom_ffprobe):
-      ffmpeg = custom_ffmpeg
-      ffprobe = custom_ffprobe
+      ff = ffmpeg(custom_ffmpeg, custom_ffprobe)
     else:
       print("{0} doesn't have FFmpeg or FFprobe. Aborting.".format(full_path))
       exit()
@@ -172,9 +170,9 @@ def main():
     else:
       from distutils.spawn import find_executable as which
 
-    ffmpeg, ffprobe = which("ffmpeg"), which("ffprobe")
+    ff = ffmpeg(which("ffmpeg"), which("ffprobe"))
 
-  if not ffmpeg or not ffprobe:
+  if not ff:
     print("FFmpeg needs to be installed to continue. Aborting.")
     exit()
   
@@ -182,29 +180,20 @@ def main():
   in_extension = get_extension(args["infile"])
 
   if in_extension in ("webm", "mp4"):
-    custom = ["-f", in_extension, "-vcodec", "copy", "-an"]
+    video_data = ff.extract_video_to_stream(args["infile"])
 
     out_mimetype, out_extension = in_mimetype, in_extension
 
   elif in_mimetype == "image/gif":
-    bitrate = "{0}M".format(args["quality"])
-    custom = ["-f", "webm", "-minrate", bitrate, "-maxrate", bitrate, "-b:v", bitrate]
+    video_data = ff.to_webm_stream(args["infile"], args["quality"])
     out_mimetype, out_extension = "video/webm", "webm"
 
   else:
     print("Not a supported filetype. Aborting.")
     exit()
- 
-  call_ffmpeg = [ffmpeg, "-i", args["infile"], "-loglevel", "quiet"] + custom + ["pipe:1"]
-  ffmpeg_output = Popen(call_ffmpeg, stdout=PIPE)
-  video_data, err = ffmpeg_output.communicate()
 
   if not args["video"]:
-    call_ffprobe = [ffprobe, "-i", "-", "-loglevel", "quiet", "-show_entries", "stream=width,height", "-print_format", "json"]
-    ffprobe_output = Popen(call_ffprobe, stdin=PIPE, stdout=PIPE)
-    raw_json = ffprobe_output.communicate(input=video_data)[0]
-    json = loads(raw_json.decode("utf-8"))
-    dimensions = json["streams"][0]
+    dimensions = ff.get_data_from_stream(video_data)
   
     if args["outfile"]:
       outfile = args["outfile"]
@@ -222,7 +211,7 @@ def main():
       "width": dimensions["width"],
       "height": dimensions["height"],
       "color": args["color"],
-      "data": b64encode(video_data).decode("utf-8")
+      "data": b64encode(video_data).decode()
     })
     write_mode = "w"
 
