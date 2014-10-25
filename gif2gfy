@@ -9,6 +9,7 @@ from string import Template
 from subprocess import Popen, PIPE, check_output, check_call
 from json import loads
 from os import sep, access, X_OK
+from tempfile import NamedTemporaryFile
 
 def get_mimetype(filename):
   return(guess_type(filename)[0])
@@ -44,9 +45,11 @@ class ffmpeg(object):
     ffmpeg_parameters = [
       self.ffmpeg,
       "-i", infile,
+      "-f", "mp4",
       "-loglevel", "quiet",
       "-vcodec", "copy",
       "-an",
+      "-y",
       outfile
     ]
 
@@ -178,22 +181,32 @@ def main():
   in_mimetype = get_mimetype(args["infile"])
   in_extension = get_extension(args["infile"])
 
-  if in_extension in ("webm", "mp4"):
+  if in_mimetype == "video/webm":
     video_data = ff.extract_video_to_stream(args["infile"])
+    out_mimetype, out_extension = "video/webm", "webm"
+    dimensions = ff.get_data_from_stream(video_data)
 
-    out_mimetype, out_extension = in_mimetype, in_extension
+  elif in_extension == "mp4":
+    """
+    There's a bug in FFmpeg where mp4 containers don't pipe properly, so a
+    workaround is to write it to a tempfile and copy back into memory
+    """
+    with NamedTemporaryFile() as temp:
+      ff.extract_video_to_file(args["infile"], temp.name)
+      video_data = open(temp.name, "rb").read()
+      out_mimetype, out_extension = "video/mp4", "mp4"
+      dimensions = ff.get_data_from_file(temp.name)
 
   elif in_mimetype == "image/gif":
     video_data = ff.to_webm_stream(args["infile"], args["quality"])
     out_mimetype, out_extension = "video/webm", "webm"
+    dimensions = ff.get_data_from_stream(video_data)
 
   else:
     print("Not a supported filetype. Aborting.")
     exit()
 
-  if not args["video"]:
-    dimensions = ff.get_data_from_stream(video_data)
-  
+  if not args["video"]:  
     if args["outfile"]:
       outfile = args["outfile"]
     else:
@@ -204,7 +217,7 @@ def main():
     else:
       title = basename(outfile)
 
-    data = html.substitute({
+    data = html.safe_substitute({
       "title": title,
       "mimetype": out_mimetype,
       "width": dimensions["width"],
