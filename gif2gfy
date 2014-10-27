@@ -26,7 +26,15 @@ class ffmpeg(object):
   maintainability
   """
   def __init__(self, ffmpeg, ffprobe):
-    self.ffmpeg, self.ffprobe = ffmpeg, ffprobe
+    self.__ffmpeg, self.__ffprobe = ffmpeg, ffprobe
+
+  @property
+  def ffmpeg(self):
+    return(self.__ffmpeg)
+
+  @property
+  def ffprobe(self):
+    return(self.__ffprobe)
 
   def extract_video_to_stream(self, infile):
     ffmpeg_parameters = [
