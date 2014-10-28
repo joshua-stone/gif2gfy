@@ -6,7 +6,7 @@ from mimetypes import guess_type
 from os.path import isfile, abspath, basename
 from base64 import b64encode
 from string import Template
-from subprocess import Popen, PIPE, check_output, check_call
+from subprocess import check_call, check_output
 from json import loads
 from os import sep, access, X_OK
 from tempfile import NamedTemporaryFile
@@ -36,24 +36,11 @@ class ffmpeg(object):
   def ffprobe(self):
     return(self.__ffprobe)
 
-  def extract_video_to_stream(self, infile):
-    ffmpeg_parameters = [
-      self.ffmpeg,
-      "-i", infile,
-      "-f", "webm",
-      "-loglevel", "quiet",
-      "-vcodec", "copy",
-      "-an",
-      "pipe:1"
-    ]
-
-    return(check_output(ffmpeg_parameters))
-
   def extract_video_to_file(self, infile, outfile):
     ffmpeg_parameters = [
       self.ffmpeg,
       "-i", infile,
-      "-f", "mp4",
+      "-f", get_extension(infile),
       "-loglevel", "quiet",
       "-vcodec", "copy",
       "-an",
@@ -63,7 +50,7 @@ class ffmpeg(object):
 
     return(check_call(ffmpeg_parameters))
 
-  def to_webm_stream(self, infile, bitrate="2.0"):
+  def to_webm_file(self, infile, outfile, bitrate="2.0"):
     bitrate = "{0}M".format(bitrate)
     ffmpeg_parameters = [
       self.ffmpeg,
@@ -73,25 +60,11 @@ class ffmpeg(object):
       "-minrate", bitrate,
       "-maxrate", bitrate,
       "-b:v", bitrate,
-      "pipe:1"
+      "-y",
+      outfile
     ]
 
-    return(check_output(ffmpeg_parameters))
-
-  def get_data_from_stream(self, video):
-    call_ffprobe = [
-      self.ffprobe,
-      "-i", "-",
-      "-loglevel", "quiet",
-      "-show_streams",
-      "-print_format", "json"
-    ]
-
-    ffprobe = Popen(call_ffprobe, stdin=PIPE, stdout=PIPE)
-    raw_json = ffprobe.communicate(input=video)[0]
-    json = loads(raw_json.decode())
-
-    return(json["streams"][0])
+    return(check_call(ffmpeg_parameters))
 
   def get_data_from_file(self, video_file):
     call_ffprobe = [
@@ -107,12 +80,13 @@ class ffmpeg(object):
 
     return(json["streams"][0])
 
+
 html = Template(
-"""<!DOCTYPE html>
+"""<!DOCTYPE html><html>
 <html>
   <meta charset=\"utf-8\">
   <title>$title (${width}x${height}px)</title>
-  <style type=\"text/css\">
+  <style type="text/css">
     * {
       margin: 0;
       padding: 0;
@@ -128,7 +102,7 @@ html = Template(
       display: table-cell;
       vertical-align: middle;
       text-align: center;
-      background-color: ${color};
+      background-color: black;
     }
     video, source {
       display: block;
@@ -189,30 +163,25 @@ def main():
   in_mimetype = get_mimetype(args["infile"])
   in_extension = get_extension(args["infile"])
 
-  if in_mimetype == "video/webm":
-    video_data = ff.extract_video_to_stream(args["infile"])
-    out_mimetype, out_extension = "video/webm", "webm"
-    dimensions = ff.get_data_from_stream(video_data)
-
-  elif in_extension == "mp4":
-    """
-    There's a bug in FFmpeg where mp4 containers don't pipe properly, so a
-    workaround is to write it to a tempfile and copy back into memory
-    """
-    with NamedTemporaryFile() as temp:
+  """
+  There's a bug in FFmpeg where piping doesn't work reliably, so a workaround
+  is to write to a tempfile
+  """
+  with NamedTemporaryFile() as temp:
+    if in_extension in ("webm", "mp4"):
       ff.extract_video_to_file(args["infile"], temp.name)
       video_data = open(temp.name, "rb").read()
-      out_mimetype, out_extension = "video/mp4", "mp4"
+      out_mimetype, out_extension = in_mimetype, out_extension
       dimensions = ff.get_data_from_file(temp.name)
 
-  elif in_mimetype == "image/gif":
-    video_data = ff.to_webm_stream(args["infile"], args["quality"])
-    out_mimetype, out_extension = "video/webm", "webm"
-    dimensions = ff.get_data_from_stream(video_data)
-
-  else:
-    print("Not a supported filetype. Aborting.")
-    exit()
+    elif in_extension == "gif":
+      ff.to_webm_file(args["infile"], temp.name, args["quality"])
+      video_data = open(temp.name, "rb").read()
+      out_mimetype, out_extension = "video/webm", "webm"
+      dimensions = ff.get_data_from_file(temp.name)
+    else:
+      print("Not a supported filetype. Aborting.")
+      exit()
 
   if not args["video"]:  
     if args["outfile"]:
