@@ -52,7 +52,8 @@ link below:
 An example of using Gif2gfy with static 64-bit FFmpeg:
 
     mkdir ffmpeg
-    wget http://johnvansickle.com/ffmpeg/releases/ffmpeg-2.4.2-64bit-static.tar.xz -O - | tar xfJ - -C ffmpeg --strip-components 1
+    wget http://johnvansickle.com/ffmpeg/releases/ffmpeg-2.4.2-64bit-static.tar.xz
+    tar xf ffmpeg-2.4.2-64bit-static.tar.xz -C ffmpeg --strip-components 1
     gif2gfy -p ffmpeg/ -i infile.gif
     
 ## Usage
@@ -60,8 +61,8 @@ An example of using Gif2gfy with static 64-bit FFmpeg:
 ####Getting information
 
     $ gif2gfy -h
-    usage: gif2gfy [-h] -i INFILE [-c COLOR] [-o OUTFILE] [-p PATH] [-q QUALITY]
-                   [-t TITLE] [-v]
+    usage: gif2gfy [-h] -i INFILE [-c COLOR] [-f FORMAT] [-o OUTFILE] [-p PATH]
+                   [-q QUALITY] [-t TITLE] [-v]
 
     An FFmpeg frontend for converting gifs into standalone gfy files.
 
@@ -71,10 +72,13 @@ An example of using Gif2gfy with static 64-bit FFmpeg:
                             Input file
       -c COLOR, --color COLOR
                             Choose background color of gfy; default is black
+      -f FORMAT, --format FORMAT
+                            Choose output format to convert gifs to; default is
+                            webm
       -o OUTFILE, --outfile OUTFILE
-                            Set filename of output; default is o.(mp4|webm).html
+                        Set filename of output; default is o.(mp4|webm).html
       -p PATH, --path PATH  Specify a custom directory to look for FFmpeg and
-                            FFprobe
+                        FFprobe
       -q QUALITY, --quality QUALITY
                             Set bitrate in MBs for gif-to-webm conversion; default
                             is 2
