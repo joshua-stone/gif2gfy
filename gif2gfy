@@ -50,13 +50,13 @@ class ffmpeg(object):
 
     return(check_call(ffmpeg_parameters))
 
-  def to_webm_file(self, infile, outfile, bitrate="2.0"):
+  def to_video_file(self, infile, outfile, bitrate="2.0", output_format="webm"):
     bitrate = "{0}M".format(bitrate)
     ffmpeg_parameters = [
       self.ffmpeg,
       "-i", infile,
       "-loglevel", "quiet", 
-      "-f", "webm",
+      "-f", output_format,
       "-minrate", bitrate,
       "-maxrate", bitrate,
       "-b:v", bitrate,
@@ -82,7 +82,7 @@ class ffmpeg(object):
 
 
 html = Template(
-"""<!DOCTYPE html><html>
+"""<!DOCTYPE html>
 <html>
   <meta charset=\"utf-8\">
   <title>$title (${width}x${height}px)</title>
@@ -119,16 +119,21 @@ def main():
   parser = ArgumentParser(prog="gif2gfy", description="An FFmpeg frontend for converting gifs into standalone gfy files.")
   parser.add_argument("-i", "--infile", required=True, help="Input file")
   parser.add_argument("-c", "--color", default="black", help="Choose background color of gfy; default is black")
+  parser.add_argument("-f", "--format", default="webm", help="Choose output format to convert gifs to; default is webm")
   parser.add_argument("-o", "--outfile", help="Set filename of output; default is o.(mp4|webm).html")
   parser.add_argument("-p", "--path", help="Specify a custom directory to look for FFmpeg and FFprobe")
   parser.add_argument("-q", "--quality", default="2", help="Set bitrate in MBs for gif-to-webm conversion; default is 2")
   parser.add_argument("-t", "--title", help="Set title in HTML page; default is whatever -o is set to")
   parser.add_argument("-v", "--video", action="store_true", help="Output pure video instead of HTML")
 
-  args = vars(parser.parse_args())
+  args, supported_formats = vars(parser.parse_args()), ("webm", "mp4")
 
   if not isfile(args["infile"]):
     print("{0} isn't a file. Aborting.".format(args["infile"]))
+    exit()
+
+  if args["format"] not in supported_formats:
+    print("\"{0}\" is not a support format. Aborting.".format(args["format"]))
     exit()
 
   """
@@ -171,13 +176,13 @@ def main():
     if in_extension in ("webm", "mp4"):
       ff.extract_video_to_file(args["infile"], temp.name)
       video_data = open(temp.name, "rb").read()
-      out_mimetype, out_extension = in_mimetype, out_extension
+      out_mimetype, out_extension = in_mimetype, in_extension
       dimensions = ff.get_data_from_file(temp.name)
 
     elif in_extension == "gif":
-      ff.to_webm_file(args["infile"], temp.name, args["quality"])
+      ff.to_video_file(args["infile"], temp.name, args["quality"], args["format"])
       video_data = open(temp.name, "rb").read()
-      out_mimetype, out_extension = "video/webm", "webm"
+      out_mimetype, out_extension = "video/" + args["format"], args["format"]
       dimensions = ff.get_data_from_file(temp.name)
     else:
       print("Not a supported filetype. Aborting.")
