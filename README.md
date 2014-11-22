@@ -30,8 +30,8 @@ animations.
 
 ## Dependencies
 
-    ffmpeg
-    python2.7 or newer
+- ffmpeg
+- python2.7 or newer
 
 #### Installing FFmpeg in Ubuntu 14.04 LTS
 
