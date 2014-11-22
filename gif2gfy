@@ -199,7 +199,7 @@ def main():
     else:
       title = basename(outfile)
 
-    data = html.safe_substitute({
+    data = html.substitute({
       "title": title,
       "mimetype": out_mimetype,
       "width": dimensions["width"],
